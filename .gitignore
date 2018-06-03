@@ -35,3 +35,5 @@
 sdkconfig
 build/
 
+# Config Info
+config.hpp
