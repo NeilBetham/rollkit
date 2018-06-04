@@ -1,0 +1,15 @@
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
+
+// WIFI Network and Credentials
+#define WIFI_SSID ""
+#define WIFI_PASS ""
+
+// Accessory Details
+#define ACC_NAME ""
+#define ACC_MODEL ""
+#define ACC_MANUFACTURER ""
+#define ACC_FIRMWARE_REVISION ""
+
+
+#endif // CONFIG_HPP
