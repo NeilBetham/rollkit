@@ -7,13 +7,13 @@
 
 class TLV {
 public:
-  TLV() : type(0) {};
-  TLV(uint8_t _type, std::forward_list<uint8_t> _value): type(_type), value(_value) {};
+  TLV() : tlv_type(0), tlv_size(0) {};
+  TLV(uint8_t _type, uint64_t _size, std::forward_list<uint8_t> _value): tlv_type(_type), tlv_size(_size), tlv_value(_value) {};
   ~TLV() {};
 
-  uint8_t type() { return type; };
-  uint8_t length() { return value.size(); };
-  std::forward_list<uint8_t> value() { return value };
+  uint8_t get_type() { return tlv_type; };
+  uint64_t length() { return tlv_size; };
+  std::forward_list<uint8_t> get_value() { return tlv_value; };
 
   std::forward_list<uint8_t> serialize();
 
@@ -21,8 +21,9 @@ public:
   static std::forward_list<uint8_t> encode(std::vector<TLV> tlvs);
 
 private:
-  uint8_t type;
-  std::forward_list<uint8_t> value;
+  uint8_t tlv_type;
+  uint64_t tlv_size;
+  std::forward_list<uint8_t> tlv_value;
 };
 
 

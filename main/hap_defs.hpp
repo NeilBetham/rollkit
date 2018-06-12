@@ -57,7 +57,6 @@
 
 
 // Apple HAP UUIDs
-
 #define APPL_HAP_UUID_BASE "%8X-0000-1000-8000-0026BB765291"
 
 // Services
