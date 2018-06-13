@@ -33,6 +33,7 @@
 
 # ESP32
 sdkconfig
+sdkconfig.old
 build/
 
 # Config Info
