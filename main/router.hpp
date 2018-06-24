@@ -5,24 +5,24 @@
 #include <vector>
 #include <tuple>
 
+#include "app.hpp"
 #include "request.hpp"
-#include "session.hpp"
 
 class IRoute {
 public:
   IRoute() {};
   virtual ~IRoute() {};
 
-  virtual void handle_request(Request& request, Session& session) = 0;
+  virtual void handle_request(Request& request) = 0;
 };
 
-class Router {
+class Router : public IAppDelegate {
 public:
   Router() {};
   ~Router() {};
 
   void register_route(std::string uri, IRoute* route);
-  void route_request(Request& request, Session& session);
+  void route_request(Request& request);
 
 private:
   std::vector<std::tuple<std::string, IRoute*> > routes;

@@ -4,25 +4,18 @@
 #include <string>
 
 #include "mongoose.h"
-#include "request.hpp"
-
-class Session;
-
-class ISessionDelegate {
-public:
-  ISessionDelegate() {};
-  virtual ~ISessionDelegate() {};
-
-  virtual void request_recv(Request& new_request, Session& session) = 0;
-};
+#include "i_app_delegate.hpp"
+#include "i_session_delegate.hpp"
 
 
-class Session {
+class Session : public IAppDelegate {
 public:
   Session();
   ~Session();
 
-  void set_session_delegate();
+  void set_session_delegate(ISessionDelegate* _delegate) { delegate = _delegate; };
+
+  void handle_request(std::string& data);
 
   void head(int code);
   void send(int code, std::string message);
@@ -30,6 +23,8 @@ public:
   bool is_closed();
 
 private:
+  ISessionDelegate* delegate;
+
   struct mg_connection* connection;
 };
 
