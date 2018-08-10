@@ -7,7 +7,7 @@
 
 class Request {
 public:
-  Request(){};
+  Request() {};
   Request(struct http_message msg, mg_connection* connection);
 
   std::string get_body(){ return body; };

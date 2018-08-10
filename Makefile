@@ -6,5 +6,3 @@
 PROJECT_NAME := rollkit
 
 include $(IDF_PATH)/make/project.mk
-
-
