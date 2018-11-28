@@ -7,6 +7,7 @@
 #include <esp_wifi.h>
 #include <freertos/FreeRTOS.h>
 #include <nvs_flash.h>
+#include <sodium.h>
 
 #include "config.hpp"
 
@@ -79,6 +80,12 @@ extern "C" {
 	void app_main(void);
 }
 void app_main(void) {
+  if(sodium_init() == -1){
+    ESP_LOGE("Crypto", "libsodium failed ot initilize");
+    esp_restart();
+  } else  {
+    ESP_LOGD("Crypto", "libsodium initialized");
+  }
   nvs_flash_init();
   tcpip_adapter_init();
   ESP_ERROR_CHECK(esp_event_loop_init(wifi_event_handler, NULL));
