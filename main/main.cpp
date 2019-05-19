@@ -68,7 +68,17 @@ esp_err_t wifi_event_handler(void *ctx, system_event_t *event) {
   }
 
   if (event->event_id == SYSTEM_EVENT_STA_START) {
-    ESP_LOGD(l_tag, "Received a start request");
+    ESP_LOGD(l_tag, "WiFi Started");
+    ESP_ERROR_CHECK(esp_wifi_connect());
+  }
+
+  if (event->event_id == SYSTEM_EVENT_STA_CONNECTED) {
+    ESP_LOGD(l_tag, "Station connected");
+  }
+
+  if (event->event_id == SYSTEM_EVENT_STA_DISCONNECTED) {
+    ESP_LOGD(l_tag, "Station disconnected");
+    printf("reason: %d\n",event->event_info.disconnected.reason);
     ESP_ERROR_CHECK(esp_wifi_connect());
   }
 
@@ -100,5 +110,4 @@ void app_main(void) {
 
   ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &sta_config));
   ESP_ERROR_CHECK(esp_wifi_start());
-  ESP_ERROR_CHECK(esp_wifi_connect());
 }
