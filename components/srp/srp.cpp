@@ -77,7 +77,7 @@ BigInt to_bigint(const string& hex_string) {
   BigInt ret;
   long index = hex_string.size();
 
-  ESP_LOGI("SRP to_bigint LOOP", "START");
+  //ESP_LOGI("SRP to_bigint LOOP", "START");
   for(auto &elem : hex_string) {
     index --;
     BigInt hex_val = 0;
@@ -91,7 +91,7 @@ BigInt to_bigint(const string& hex_string) {
 
     ret += (hex_val * pow(BigInt(16), index));
   }
-  ESP_LOGI("SRP to_bigint LOOP", "END");
+  //ESP_LOGI("SRP to_bigint LOOP", "END");
 
   return ret;
 }

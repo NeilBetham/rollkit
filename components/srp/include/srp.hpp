@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "BigInt.hpp"
+#include "tommath.h"
 
 namespace SRP {
 
