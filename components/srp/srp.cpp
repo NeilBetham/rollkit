@@ -6,6 +6,12 @@
 #include <sstream>
 #include <optional>
 
+#include "esp_log.h"
+#include "esp_system.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
+#include "freertos/task.h"
+
 using namespace std;
 
 namespace SRP {
@@ -71,6 +77,7 @@ BigInt to_bigint(const string& hex_string) {
   BigInt ret;
   long index = hex_string.size();
 
+  ESP_LOGI("SRP to_bigint LOOP", "START");
   for(auto &elem : hex_string) {
     index --;
     BigInt hex_val = 0;
@@ -84,6 +91,7 @@ BigInt to_bigint(const string& hex_string) {
 
     ret += (hex_val * pow(BigInt(16), index));
   }
+  ESP_LOGI("SRP to_bigint LOOP", "END");
 
   return ret;
 }
@@ -94,14 +102,22 @@ BigInt mod_pow(const BigInt& b, const BigInt& e, const BigInt& m) {
   BigInt result(1);
   BigInt base = b % m;
   BigInt exponent(e);
+  ESP_LOGI("SRP ModPow LOOP", "START");
+  fflush(stdout);
+  vTaskDelay(1);
   while(exponent > 0) {
     if(exponent % 2 == 1) {
       result = (result * base) % m;
     }
     exponent /= 2;
     base = (base * base) % m;
+    printf(".");
+    fflush(stdout);
+    vTaskDelay(1);
   }
-
+  ESP_LOGI("SRP ModPow LOOP", "END");
+  fflush(stdout);
+  vTaskDelay(1);
   return result;
 }
 
