@@ -28,6 +28,9 @@ BigNum get_u(const BigNum& n, const BigNum& A, const BigNum& B);
 // v = g^x (mod n)
 BigNum get_v(const BigNum& n, const BigNum& g, const BigNum& x);
 
+// A = g^a (mod N)
+BigNum get_A(const BigNum& n, const BigNum& g, const BigNum& a);
+
 // B = g^b + k v (mod N)
 BigNum get_B(const BigNum& n, const BigNum& g, const BigNum& b, const BigNum& k, const BigNum& v);
 
