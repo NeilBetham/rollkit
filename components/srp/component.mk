@@ -1,1 +1,4 @@
 COMPONENT_DEPENDS := libtommath
+CXXFLAGS += -fexceptions
+CXXFLAGS += -D_GLIBCXX_USE_C99
+CXXFLAGS += -std=c++17

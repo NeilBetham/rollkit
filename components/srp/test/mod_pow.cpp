@@ -1,17 +1,12 @@
 #include "unity.h"
 #include "srp.hpp"
 
-
-
-
-
-
 TEST_CASE("Modular Exponentiation 2^6%5", "[pass]") {
-  TEST_ASSERT(SRP::mod_pow({2}, {6}, {5}) == BigInt(4));
+  TEST_ASSERT(SRP::mod_pow({2}, {6}, {5}) == BigNum(4));
 }
 
 TEST_CASE("RFC 5054 Test Vector: A=g^a%N", "[pass]"){
-  static BigInt modulus = SRP::to_bigint("\
+  static BigNum modulus = BigNum("\
   FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E08\
   8A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B\
   302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9\
@@ -28,19 +23,19 @@ TEST_CASE("RFC 5054 Test Vector: A=g^a%N", "[pass]"){
   E0FD108E4B82D120A93AD2CAFFFFFFFFFFFFFFFF\
   ");
 
-  static BigInt base("5");
+  static BigNum base("5");
 
-  static BigInt exponent = SRP::to_bigint("\
+  static BigNum exponent = BigNum("\
   60975527035CF2AD1989806F0407210BC81EDC04E2762A56AFD529DDDA2D4393\
   ");
 
-  static BigInt result = SRP::to_bigint("\
+  static BigNum result = BigNum("\
   61D5E490F6F1B79547B0704C436F523DD0E560F0C64115BB72557EC4\
   4352E8903211C04692272D8B2D1A5358A2CF1B6E0BFCF99F921530EC\
   8E39356179EAE45E42BA92AEACED825171E1E8B9AF6D9C03E1327F44\
   BE087EF06530E69F66615261EEF54073CA11CF5858F0EDFDFE15EFEA\
   B349EF5D76988A3672FAC47B0769447B\
   ");
-  
+
   TEST_ASSERT(SRP::mod_pow(base, exponent, modulus) == result);
 }

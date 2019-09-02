@@ -3,107 +3,107 @@
 
 #include <vector>
 
-#include "BigInt.hpp"
+#include "bignum.hpp"
 #include "tommath.h"
 
 namespace SRP {
 
 // Interface to external libs
-BigInt hash(const BigInt& safe_prime_n, const std::vector<BigInt>& h);
-BigInt random(int byte_count);
+BigNum hash(const BigNum& safe_prime_n, const std::vector<BigNum>& h);
+BigNum random(int byte_count);
 
 // Hex conversion into and out of hash
-std::string to_hex(const BigInt& from_int);
-BigInt to_bigint(const std::string& hex_string);
+std::string to_hex(const BigNum& from_int);
+BigNum to_bigint(const std::string& hex_string);
 
 // a^n (mod m)
-BigInt mod_pow(const BigInt& a, const BigInt& n, const BigInt& m);
+BigNum mod_pow(const BigNum& a, const BigNum& n, const BigNum& m);
 
 // k = H(n, g)
-BigInt get_k(const BigInt& n, const BigInt& g);
+BigNum get_k(const BigNum& n, const BigNum& g);
 
 // u = H(A, B)
-BigInt get_u(const BigInt& n, const BigInt& A, const BigInt& B);
+BigNum get_u(const BigNum& n, const BigNum& A, const BigNum& B);
 
 // v = g^x (mod n)
-BigInt get_v(const BigInt& n, const BigInt& g, const BigInt& x);
+BigNum get_v(const BigNum& n, const BigNum& g, const BigNum& x);
 
 // B = g^b + k v (mod N)
-BigInt get_B(const BigInt& n, const BigInt& g, const BigInt& b, const BigInt& k, const BigInt& v);
+BigNum get_B(const BigNum& n, const BigNum& g, const BigNum& b, const BigNum& k, const BigNum& v);
 
 // Server S = (A * v^u) ^ b % n
-BigInt get_S_host(const BigInt& n, const BigInt& A, const BigInt& v, const BigInt& u, const BigInt& b);
+BigNum get_S_host(const BigNum& n, const BigNum& A, const BigNum& v, const BigNum& u, const BigNum& b);
 
 // K = H(S)
-BigInt get_K(const BigInt& S);
+BigNum get_K(const BigNum& S);
 
 // Client M = H(H(N) xor H(g), H(I), s, A, B, K)
-BigInt get_M_client(const std::string& username, const BigInt& n, const BigInt& g, const BigInt& s, const BigInt& A, const BigInt& B, const BigInt& K);
+BigNum get_M_client(const std::string& username, const BigNum& n, const BigNum& g, const BigNum& s, const BigNum& A, const BigNum& B, const BigNum& K);
 
 // Host M = H(A, M, K)
-BigInt get_M_host(const BigInt& n, const BigInt& A, const BigInt& M, const BigInt& K);
+BigNum get_M_host(const BigNum& n, const BigNum& A, const BigNum& M, const BigNum& K);
 
 
 // User paramter class
 class User {
 public:
-  User(const std::string _username, const BigInt& _verifier, const BigInt& _salt) : username(_username), verifier(_verifier), salt(_salt) {};
+  User(const std::string _username, const BigNum& _verifier, const BigNum& _salt) : username(_username), verifier(_verifier), salt(_salt) {};
 
-  static User fromPassword(const BigInt& n, const BigInt& g, const std::string& username, const std::string& password);
+  static User fromPassword(const BigNum& n, const BigNum& g, const std::string& username, const std::string& password);
 
   std::string get_username() { return username; };
-  BigInt get_verifier() { return verifier; };
-  BigInt get_salt() { return salt; };
+  BigNum get_verifier() { return verifier; };
+  BigNum get_salt() { return salt; };
 
 private:
   std::string username;
-  BigInt verifier;
-  BigInt salt;
+  BigNum verifier;
+  BigNum salt;
 };
 
 
 // Holds challenge paramters to send to client
 class Challenge {
 public:
-  Challenge(const BigInt& _Be, const BigInt& _salt) : Be(_Be), salt(_salt) {};
+  Challenge(const BigNum& _Be, const BigNum& _salt) : Be(_Be), salt(_salt) {};
 
-  BigInt get_B() { return Be; };
-  BigInt get_salt() { return salt; };
+  BigNum get_B() { return Be; };
+  BigNum get_salt() { return salt; };
 
 private:
-  BigInt Be;
-  BigInt salt;
+  BigNum Be;
+  BigNum salt;
 };
 
 
 // Handles verification of SRP parameters
 class Verifier {
   public:
-    Verifier(const BigInt& prime, int _g, const User& _user);
+    Verifier(const BigNum& prime, int _g, const User& _user);
 
-    Challenge get_challenge(const BigInt& _A);
-    bool verify(const BigInt& M);
-    BigInt get_client_proof() { return H_AMK; };
+    Challenge get_challenge(const BigNum& _A);
+    bool verify(const BigNum& M);
+    BigNum get_client_proof() { return H_AMK; };
 
   private:
     User user;
 
-    BigInt N;
+    BigNum N;
     int g;
-    BigInt k;
-    BigInt A;
-    BigInt B;
-    BigInt b;
-    BigInt S;
-    BigInt K;
-    BigInt M;
-    BigInt H_AMK;
+    BigNum k;
+    BigNum A;
+    BigNum B;
+    BigNum b;
+    BigNum S;
+    BigNum K;
+    BigNum M;
+    BigNum H_AMK;
 };
 
 
 namespace External {
   std::string sha512(const std::string& value);
-  BigInt random(int byte_count);
+  BigNum random(int byte_count);
 } // External
 
 

@@ -5,3 +5,6 @@
 # are not referenced from outside (which is usually the case for unit tests).
 #
 COMPONENT_ADD_LDFLAGS = -Wl,--whole-archive -l$(COMPONENT_NAME) -Wl,--no-whole-archive
+CXXFLAGS += -fexceptions
+CXXFLAGS += -D_GLIBCXX_USE_C99
+CXXFLAGS += -std=c++17

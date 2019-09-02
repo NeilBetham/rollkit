@@ -16,27 +16,12 @@ using namespace std;
 
 namespace SRP {
 
-BigInt bxor(const BigInt& a, const BigInt& b) {
-  string a_s = a.to_string();
-  string b_s = b.to_string();
-  string out;
-  out.reserve(max(a_s.size(), b_s.size()));
-
-  if(a_s.size() > b_s.size()) {
-    add_leading_zeroes(b_s, a_s.size() - b_s.size());
-  } else {
-    add_leading_zeroes(a_s, a_s.size() - b_s.size());
-  }
-
-  for(int i = 0; i < out.capacity(); i++) {
-    out = a_s[i] ^ b_s[i];
-  }
-
-  return BigInt(out);
+BigNum bxor(const BigNum& a, const BigNum& b) {
+  return a ^ b;
 }
 
 
-BigInt hash(const BigInt& prime_n, const vector<BigInt>& h) {
+BigNum hash(const BigNum& prime_n, const vector<BigNum>& h) {
   uint64_t safe_prime_size = to_hex(prime_n).size();
   string to_hash;
 
@@ -48,151 +33,96 @@ BigInt hash(const BigInt& prime_n, const vector<BigInt>& h) {
     to_hash += val_hex;
   }
 
-  return to_bigint(External::sha512(to_hash)) % prime_n;
+  return BigNum(External::sha512(to_hash)) % prime_n;
 }
 
 
-BigInt random(int byte_count) {
+BigNum random(int byte_count) {
   return External::random(byte_count);
 }
 
 // Hex conversion into and out of hash
-string to_hex(const BigInt& from_int) {
-  BigInt temp = from_int;
-  stringstream hex_str;
-
-  while(temp > 0) {
-    BigInt remainder = temp % 16;
-    temp = temp / 16;
-    hex_str << hex << remainder.to_int();
-  }
-
-  string output = hex_str.str();
-  reverse(output.begin(), output.end());
-
-  return output;
+string to_hex(const BigNum& from_int) {
+  return from_int.export_b16();
 }
-
-BigInt to_bigint(const string& hex_string) {
-  BigInt ret;
-  long index = hex_string.size();
-
-  //ESP_LOGI("SRP to_bigint LOOP", "START");
-  for(auto &elem : hex_string) {
-    index --;
-    BigInt hex_val = 0;
-
-    if (elem >= '0' && elem <= '9')
-        hex_val = elem - '0';
-    if (elem >= 'A' && elem <= 'F')
-        hex_val = elem - 'A' + 10;
-    if (elem >= 'a' && elem <= 'f')
-        hex_val = elem - 'a' + 10;
-
-    ret += (hex_val * pow(BigInt(16), index));
-  }
-  //ESP_LOGI("SRP to_bigint LOOP", "END");
-
-  return ret;
-}
-
 
 // a^n (mod m)
-BigInt mod_pow(const BigInt& b, const BigInt& e, const BigInt& m) {
-  BigInt result(1);
-  BigInt base = b % m;
-  BigInt exponent(e);
-  ESP_LOGI("SRP ModPow LOOP", "START");
-  fflush(stdout);
-  vTaskDelay(1);
-  while(exponent > 0) {
-    if(exponent % 2 == 1) {
-      result = (result * base) % m;
-    }
-    exponent /= 2;
-    base = (base * base) % m;
-    printf(".");
-    fflush(stdout);
-    vTaskDelay(1);
-  }
-  ESP_LOGI("SRP ModPow LOOP", "END");
-  fflush(stdout);
-  vTaskDelay(1);
-  return result;
+BigNum mod_pow(const BigNum& b, const BigNum& e, const BigNum& m) {
+  return b.mod_pow(e, m);
 }
 
 // k = H(n, g)
-BigInt get_k(const BigInt& n, const BigInt& g) {
+BigNum get_k(const BigNum& n, const BigNum& g) {
   return hash(n, {n , g});
 }
 
 // x = H(salt | H(username | ':' | password))
-BigInt get_x(const std::string& username, const std::string& password, const BigInt& salt) {
-  string salt_s = salt.to_string();
+BigNum get_x(const std::string& username, const std::string& password, const BigNum& salt) {
+  string salt_s = salt.export_b16();
   if ((salt_s.size() % 2) != 0) {
     salt_s.insert(salt_s.begin(), '0');
   }
   string sup_concat = salt_s + username + ":" + password;
-  return BigInt(External::sha512(sup_concat));
+  return BigNum(External::sha512(sup_concat));
 }
 
 // u = H(A, B)
-BigInt get_u(const BigInt& n, const BigInt& A, const BigInt& B) {
+BigNum get_u(const BigNum& n, const BigNum& A, const BigNum& B) {
   return hash(n, {A, B});
 }
 
 // v = g^x (mod n)
-BigInt get_v(const BigInt& n, const BigInt& g, const BigInt& x) {
+BigNum get_v(const BigNum& n, const BigNum& g, const BigNum& x) {
   return mod_pow(g, x, n);
 }
 
 // A = g^a (mod n)
-BigInt get_A(const BigInt& n, const BigInt& g, const BigInt& a) {
+BigNum get_A(const BigNum& n, const BigNum& g, const BigNum& a) {
   return mod_pow(g, a, n);
 }
 
 // B = g^b + k v (mod N)
-BigInt get_B(const BigInt& n, const BigInt& g, const BigInt& b, const BigInt& k, const BigInt& v) {
+BigNum get_B(const BigNum& n, const BigNum& g, const BigNum& b, const BigNum& k, const BigNum& v) {
   return (mod_pow(g, b, n) + (k * v)) % n;
 }
 
 // Server S = (A * v^u) ^ b % n
-BigInt get_S_host(const BigInt& n, const BigInt& A, const BigInt& v, const BigInt& u, const BigInt& b) {
+BigNum get_S_host(const BigNum& n, const BigNum& A, const BigNum& v, const BigNum& u, const BigNum& b) {
   return mod_pow(A * mod_pow(v, u, n), b, n);
 }
 
 // K = H(S)
-BigInt get_K(const BigInt& S) {
-  return BigInt(External::sha512(S.to_string()));
+BigNum get_K(const BigNum& S) {
+  return BigNum(External::sha512(S.export_b16()));
 }
 
 // Client M = H(H(N) xor H(g), H(I), s, A, B, K)
-BigInt get_M_client(const string& username, const BigInt& n, const BigInt& g, const BigInt& s, const BigInt& A, const BigInt& B, const BigInt& K) {
-  BigInt hn = BigInt(External::sha512(n.to_string()));
-  BigInt hg = BigInt(External::sha512(g.to_string()));
-  BigInt hxor = bxor(hn, hg);
-  BigInt hu = BigInt(External::sha512(username));
+BigNum get_M_client(const string& username, const BigNum& n, const BigNum& g, const BigNum& s, const BigNum& A, const BigNum& B, const BigNum& K) {
+  BigNum hn = BigNum(External::sha512(n.export_b16()));
+  BigNum hg = BigNum(External::sha512(g.export_b16()));
+  BigNum hxor = bxor(hn, hg);
+  BigNum hu = BigNum(External::sha512(username));
   return hash(n, {hxor, hu, s, A, B, K});
 }
 
 // Host M = H(A, M, K)
-BigInt get_M_host(const BigInt& n, const BigInt& A, const BigInt& M, const BigInt& K) {
+BigNum get_M_host(const BigNum& n, const BigNum& A, const BigNum& M, const BigNum& K) {
   return hash(n , {A, M, K});
 }
 
 
 // class User
-User User::fromPassword(const BigInt& n, const BigInt& g, const std::string &username, const std::string &password) {
-  BigInt rand_salt = random(32);
-  BigInt x = get_x(username, password, rand_salt);
-  BigInt v = get_v(n, g, x);
+User User::fromPassword(const BigNum& n, const BigNum& g, const std::string &username, const std::string &password) {
+  BigNum rand_salt = random(32);
+  BigNum x = get_x(username, password, rand_salt);
+  BigNum v = get_v(n, g, x);
 
   return User(username, v, rand_salt);
 }
 
 
 // class Verifier
-Challenge Verifier::get_challenge(const BigInt& _A) {
+Challenge Verifier::get_challenge(const BigNum& _A) {
   if((A % N) == 0) {
     A = _A;
   }
@@ -203,9 +133,9 @@ Challenge Verifier::get_challenge(const BigInt& _A) {
   return Challenge(B, user.get_salt());
 }
 
-bool Verifier::verify(const BigInt& client_M) {
+bool Verifier::verify(const BigNum& client_M) {
   bool verified = false;
-  BigInt u = hash(N , {A, B});
+  BigNum u = hash(N , {A, B});
   S = get_S_host(N, A, user.get_verifier(), u, b);
   K = get_K(S);
   M = get_M_client(user.get_username(), N, g, user.get_salt(), A, B, K);
@@ -230,13 +160,13 @@ string sha512(const string& value) {
   return move(temp);
 }
 
-BigInt random(int byte_count) {
+BigNum random(int byte_count) {
   string temp;
   temp.reserve(byte_count);
 
   randombytes_buf((void*) temp.data(), byte_count);
 
-  return BigInt(temp);
+  return BigNum(temp);
 }
 
 
