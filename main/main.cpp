@@ -1,13 +1,16 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
 #include <esp_event.h>
-#include <esp_event_loop.h>
 #include <esp_log.h>
 #include <esp_system.h>
 #include <esp_wifi.h>
 #include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/event_groups.h>
 #include <nvs_flash.h>
 #include <sodium.h>
+#include <lwip/err.h>
+#include <lwip/sys.h>
 
 #include "config.hpp"
 
@@ -60,29 +63,42 @@ void mg_task(void* data) {
 }
 
 // ESP32 WiFi handler.
-esp_err_t wifi_event_handler(void *ctx, system_event_t *event) {
-  if (event->event_id == SYSTEM_EVENT_STA_GOT_IP) {
-    ESP_LOGD(l_tag, "Got an IP: " IPSTR, IP2STR(&event->event_info.got_ip.ip_info.ip));
+static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
+  if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
+    esp_wifi_connect();
+  } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+    esp_wifi_connect();
+    ESP_LOGI(l_tag, "retry to connect to the AP");
+    ESP_LOGI(l_tag,"connect to the AP fail");
+  } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+    ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+    ESP_LOGI(l_tag, "got ip:%s", ip4addr_ntoa(&event->ip_info.ip));
     xTaskCreatePinnedToCore(&mg_task, "mg_task", 20000, NULL, 5, NULL,0);
     config_mdns();
   }
+}
 
-  if (event->event_id == SYSTEM_EVENT_STA_START) {
-    ESP_LOGD(l_tag, "WiFi Started");
-    ESP_ERROR_CHECK(esp_wifi_connect());
-  }
 
-  if (event->event_id == SYSTEM_EVENT_STA_CONNECTED) {
-    ESP_LOGD(l_tag, "Station connected");
-  }
+void init_wifi() {
+  tcpip_adapter_init();
 
-  if (event->event_id == SYSTEM_EVENT_STA_DISCONNECTED) {
-    ESP_LOGD(l_tag, "Station disconnected");
-    printf("reason: %d\n",event->event_info.disconnected.reason);
-    ESP_ERROR_CHECK(esp_wifi_connect());
-  }
+  ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-  return ESP_OK;
+  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+  ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+  ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
+  ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL));
+
+  wifi_config_t wifi_config;
+  memset(&wifi_config, 0, sizeof(wifi_config));
+  strcpy((char*)wifi_config.sta.ssid, WIFI_SSID);
+  strcpy((char*)wifi_config.sta.password, WIFI_PASS);
+  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+  ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
+  ESP_ERROR_CHECK(esp_wifi_start());
+
+  ESP_LOGI(l_tag, "wifi_init_sta finished.");
 }
 
 
@@ -97,17 +113,5 @@ void app_main(void) {
     ESP_LOGD("Crypto", "libsodium initialized");
   }
   nvs_flash_init();
-  tcpip_adapter_init();
-  ESP_ERROR_CHECK(esp_event_loop_init(wifi_event_handler, NULL));
-  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-  ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-  wifi_config_t sta_config;
-  strcpy((char*)sta_config.sta.ssid, WIFI_SSID);
-  strcpy((char*)sta_config.sta.password, WIFI_PASS);
-  sta_config.sta.bssid_set = 0;
-
-  ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &sta_config));
-  ESP_ERROR_CHECK(esp_wifi_start());
+  init_wifi();
 }
