@@ -8,7 +8,7 @@
 
 using namespace std;
 
-TEST_CASE("HomeKit SRP Hash Function", "[pass]") {
+TEST_CASE("HomeKit SHA512 Hash Function", "[pass]") {
   auto b16_hash = BigNum::from_raw(SRP::External::sha512("hello")).export_b16();
 
   TEST_ASSERT_EQUAL_STRING(

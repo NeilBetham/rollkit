@@ -153,11 +153,9 @@ namespace External {
 
 
 string sha512(const string& value) {
-  string temp;
-  temp.resize(crypto_hash_sha512_BYTES);
+  string temp(crypto_hash_sha512_BYTES, 0);
 
-  crypto_hash_sha512((unsigned char*)temp.data(), (unsigned char*)temp.data(), value.size());
-  std::reverse(temp.begin(), temp.end());
+  crypto_hash_sha512((unsigned char*)temp.data(), (unsigned char*)value.data(), value.size());
 
   return move(temp);
 }
