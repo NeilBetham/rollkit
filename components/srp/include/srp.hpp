@@ -22,6 +22,9 @@ BigNum mod_pow(const BigNum& a, const BigNum& n, const BigNum& m);
 // k = H(n, g)
 BigNum get_k(const BigNum& n, const BigNum& g);
 
+// x = H(salt || H(username || ":" || password))
+BigNum get_x(const std::string& username, const std::string& password, const BigNum& salt);
+
 // u = H(A, B)
 BigNum get_u(const BigNum& n, const BigNum& A, const BigNum& B);
 

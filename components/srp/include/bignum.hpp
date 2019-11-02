@@ -40,6 +40,13 @@ public:
     mp_clear(&_value);
   };
 
+  static BigNum from_raw(const std::string& raw_data) {
+    BigNum ret;
+    mp_err error = mp_import(&ret._value, raw_data.size(), 1, 1, 1, 0, raw_data.data());
+    assert(error == MP_OKAY);
+    return ret;
+  };
+
   BigNum& operator=(const BigNum& rhs) {
     mp_err error = mp_init_copy(&_value, &rhs._value);
     assert(error == MP_OKAY);

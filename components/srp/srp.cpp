@@ -33,7 +33,7 @@ BigNum hash(const BigNum& prime_n, const vector<BigNum>& h) {
     to_hash += val_hex;
   }
 
-  return BigNum(External::sha512(to_hash)) % prime_n;
+  return BigNum::from_raw(External::sha512(to_hash)) % prime_n;
 }
 
 
@@ -63,7 +63,8 @@ BigNum get_x(const std::string& username, const std::string& password, const Big
     salt_s.insert(salt_s.begin(), '0');
   }
   string sup_concat = salt_s + username + ":" + password;
-  return BigNum(External::sha512(sup_concat));
+  string hash_val = External::sha512(sup_concat);
+  return BigNum(hash_val);
 }
 
 // u = H(A, B)
@@ -153,16 +154,17 @@ namespace External {
 
 string sha512(const string& value) {
   string temp;
-  temp.reserve(value.size());
+  temp.resize(crypto_hash_sha512_BYTES);
 
-  crypto_hash_sha512((unsigned char*)temp.data(), (unsigned char*)value.data(), value.size());
+  crypto_hash_sha512((unsigned char*)temp.data(), (unsigned char*)temp.data(), value.size());
+  std::reverse(temp.begin(), temp.end());
 
   return move(temp);
 }
 
 BigNum random(int byte_count) {
   string temp;
-  temp.reserve(byte_count);
+  temp.resize(byte_count);
 
   randombytes_buf((void*) temp.data(), byte_count);
 

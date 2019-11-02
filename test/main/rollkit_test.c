@@ -20,7 +20,7 @@ void app_main()
   xTaskCreate(
     run_tests,
     "Tests",
-    20000,
+    40000,
     NULL,
     tskIDLE_PRIORITY,
     &test_task_handle
