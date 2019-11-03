@@ -47,6 +47,13 @@ public:
     return ret;
   };
 
+  std::string export_raw() const {
+    std::string tmp(mp_signed_bin_size(&_value), 0);
+    mp_err error = mp_to_signed_bin(&_value, (unsigned char*)tmp.data());
+    assert(error == MP_OKAY);
+    return tmp;
+  }
+
   BigNum& operator=(const BigNum& rhs) {
     mp_err error = mp_init_copy(&_value, &rhs._value);
     assert(error == MP_OKAY);
@@ -134,6 +141,7 @@ public:
     if(error != MP_OKAY) { return ""; }
     return buffer;
   };
+
 
 private:
   BigNum check_ret(mp_err err, const BigNum& ret) const {

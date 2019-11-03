@@ -22,8 +22,7 @@ TEST_CASE("HomeKit SRP Test Vectors - get_A", "[pass]") {
 }
 
 TEST_CASE("HomeKit SRP Test Vectors - get_v", "[pass]") {
-  auto x = SRP::get_x("alice", "password123", tv_s());
-  TEST_ASSERT(SRP::get_v(tv_N(), tv_g(), x) == tv_v());
+  TEST_ASSERT(SRP::get_v(tv_N(), tv_g(), SRP::get_x("alice", "password123", tv_s())) == tv_v());
 }
 
 TEST_CASE("HomeKit SRP Test Vectors - get_B", "[pass]") {

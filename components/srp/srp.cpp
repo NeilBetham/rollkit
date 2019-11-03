@@ -16,24 +16,25 @@ using namespace std;
 
 namespace SRP {
 
+
 BigNum bxor(const BigNum& a, const BigNum& b) {
   return a ^ b;
 }
 
 
 BigNum hash(const BigNum& prime_n, const vector<BigNum>& h) {
-  uint64_t safe_prime_size = to_hex(prime_n).size();
+  uint64_t safe_prime_size = prime_n.export_raw().size(); // TODO: Optimize
   string to_hash;
 
-  for(auto &val_to_pad: h) {
-    string val_hex = to_hex(val_to_pad);
-    for(int i = val_hex.size(); i < safe_prime_size; i++) {
-      val_hex.insert(val_hex.begin(), '0');
+  for(auto& val : h) {
+    string val_to_pad = val.export_raw();
+    for(int i = val_to_pad.size(); i < safe_prime_size; i++) {
+      val_to_pad.insert(val_to_pad.begin(), 0);
     }
-    to_hash += val_hex;
+    to_hash += val_to_pad;
   }
 
-  return BigNum::from_raw(External::sha512(to_hash)) % prime_n;
+  return BigNum::from_raw(External::sha512(to_hash)); // % prime_n;
 }
 
 
@@ -58,13 +59,9 @@ BigNum get_k(const BigNum& n, const BigNum& g) {
 
 // x = H(salt | H(username | ':' | password))
 BigNum get_x(const std::string& username, const std::string& password, const BigNum& salt) {
-  string salt_s = salt.export_b16();
-  if ((salt_s.size() % 2) != 0) {
-    salt_s.insert(salt_s.begin(), '0');
-  }
-  string sup_concat = salt_s + username + ":" + password;
-  string hash_val = External::sha512(sup_concat);
-  return BigNum(hash_val);
+  string up_hash = External::sha512(username + ":" + password);
+  string hash_val = External::sha512(salt.export_raw() + up_hash);
+  return BigNum::from_raw(hash_val);
 }
 
 // u = H(A, B)
