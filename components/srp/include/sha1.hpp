@@ -2,10 +2,12 @@
 #define SHA512_HPP
 
 #include <mbedtls/sha1.h>
+#include <string>
 
 #include "i_hash_function.hpp"
 
 class SHA1 : public IHashFunction {
+public:
   SHA1() {
     mbedtls_sha1_init(&_state);
   }
@@ -14,8 +16,8 @@ class SHA1 : public IHashFunction {
     mbedtls_sha1_free(&_state);
   }
 
-  string hash(const string& input) {
-    string temp(20, 0);
+  std::string hash(const std::string& input) {
+    std::string temp(20, 0);
     mbedtls_sha1_starts_ret(&_state);
     mbedtls_sha1_update_ret(&_state, (unsigned char*)input.data(), input.size());
     mbedtls_sha1_finish_ret(&_state, (unsigned char*)(&temp[0]));

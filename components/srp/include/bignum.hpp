@@ -7,7 +7,6 @@
 
 #include "tommath.h"
 
-
 class BigNum {
 public:
   BigNum() {
@@ -48,8 +47,8 @@ public:
   };
 
   std::string export_raw() const {
-    std::string tmp(mp_signed_bin_size(&_value), 0);
-    mp_err error = mp_to_signed_bin(&_value, (unsigned char*)tmp.data());
+    std::string tmp(mp_unsigned_bin_size(&_value), 0);
+    mp_err error = mp_to_unsigned_bin(&_value, (unsigned char*)tmp.data());
     assert(error == MP_OKAY);
     return tmp;
   }
@@ -93,7 +92,7 @@ public:
 
   BigNum operator%(const BigNum& rhs) const {
     BigNum ret;
-    return check_ret(mp_add(&_value, &rhs._value, &ret._value), ret);
+    return check_ret(mp_mod(&_value, &rhs._value, &ret._value), ret);
   };
 
   BigNum operator^(const BigNum& rhs) const {

@@ -3,6 +3,11 @@
 
 #include "bignum.hpp"
 
+// Salt
+static BigNum tv_s() {
+  return BigNum("BEB25379D1A8581EB5A727673A2441EE");
+}
+
 // RFC Modulus
 static BigNum tv_N() {
   return BigNum("\
