@@ -1,15 +1,10 @@
-#include <string>
-
 #include "unity.h"
 #include "rfc_test_vectors.hpp"
-#include "sha1.hpp"
 #include "srp.hpp"
-
-#include "esp_log.h"
 
 using namespace std;
 
-static SHA1 hash_fn;
+static SRP::SHA1 hash_fn;
 static SRP::Math math(hash_fn, tv_N(), tv_g());
 
 

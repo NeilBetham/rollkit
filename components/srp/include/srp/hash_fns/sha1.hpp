@@ -1,10 +1,13 @@
-#ifndef SHA512_HPP
-#define SHA512_HPP
+#ifndef SRP_HASH_FN_SHA1_HPP
+#define SRP_HASH_FN_SHA1_HPP
 
 #include <mbedtls/sha1.h>
 #include <string>
 
-#include "i_hash_function.hpp"
+#include "srp/i_hash_function.hpp"
+
+namespace SRP {
+
 
 class SHA1 : public IHashFunction {
 public:
@@ -29,4 +32,6 @@ private:
 };
 
 
-#endif // SHA512_HPP
+} // namespace SRP
+
+#endif // SRP_HASH_FN_SHA1_HPP

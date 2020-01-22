@@ -1,7 +1,7 @@
 #ifndef RFC_TEST_VECTORS_HPP
 #define RFC_TEST_VECTORS_HPP
 
-#include "bignum.hpp"
+#include "srp/bignum.hpp"
 
 // Salt
 static BigNum tv_s() {

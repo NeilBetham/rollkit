@@ -1,10 +1,13 @@
-#ifndef SHA512_HPP
-#define SHA512_HPP
+#ifndef SRP_HASH_FN_SHA512_HPP
+#define SRP_HASH_FN_SHA512_HPP
 
 #include <string>
 #include <sodium.h>
 
-#include "i_hash_function.hpp"
+#include "srp/i_hash_function.hpp"
+
+namespace SRP {
+
 
 class SHA512 : public IHashFunction {
 public:
@@ -18,4 +21,6 @@ public:
 };
 
 
-#endif // SHA512_HPP
+} // namespace SRP
+
+#endif // SRP_HASH_FN_SHA512_HPP

@@ -1,5 +1,5 @@
-#ifndef BIGNUM_HPP
-#define BIGNUM_HPP
+#ifndef SRP_BIGNUM_HPP
+#define SRP_BIGNUM_HPP
 
 #include <string>
 #include <optional>
@@ -154,4 +154,4 @@ private:
 };
 
 
-#endif // BIGNUM_HPP
+#endif // SRP_BIGNUM_HPP

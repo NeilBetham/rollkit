@@ -1,15 +1,10 @@
-#include <string>
-
 #include "unity.h"
 #include "srp.hpp"
 #include "srp_test_vectors.hpp"
-#include "sha512.hpp"
-
-#include "esp_log.h"
 
 using namespace std;
 
-static SHA512 hash_fn;
+static SRP::SHA512 hash_fn;
 static SRP::Math math(hash_fn, tv_N(), tv_g());
 
 TEST_CASE("HomeKit - SHA512 Hash Function", "[pass]") {

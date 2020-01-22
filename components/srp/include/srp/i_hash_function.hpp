@@ -1,5 +1,5 @@
-#ifndef I_HASH_FUNCTION_HPP
-#define I_HASH_FUNCTION_HPP
+#ifndef SRP_I_HASH_FUNCTION_HPP
+#define SRP_I_HASH_FUNCTION_HPP
 
 #include <string>
 
@@ -13,4 +13,4 @@ public:
 };
 
 
-#endif // I_HASH_FUNCTION_HPP
+#endif // SRP_I_HASH_FUNCTION_HPP

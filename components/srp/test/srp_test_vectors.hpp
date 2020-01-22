@@ -1,7 +1,7 @@
 #ifndef SRP_TEST_VECTORS_HPP
 #define SRP_TEST_VECTORS_HPP
 
-#include "bignum.hpp"
+#include "srp/bignum.hpp"
 
 // RFC Modulus
 static BigNum tv_N() {
