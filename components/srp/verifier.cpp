@@ -1,21 +1,10 @@
-#include "srp.hpp"
+#include "srp/verifier.hpp"
 
-using namespace std;
+#include "srp/utils.hpp"
 
 namespace SRP {
 
 
-// class User
-User User::fromPassword(Math& math, const std::string &username, const std::string &password) {
-  BigNum rand_salt = random(32);
-  BigNum x = math.get_x(username, password, rand_salt);
-  BigNum v = math.get_v(x);
-
-  return User(math, username, v, rand_salt);
-}
-
-
-// class Verifier
 Challenge Verifier::get_challenge(const BigNum& _A) {
   if((A % _math.N()) == 0) {
     A = _A;
@@ -26,7 +15,6 @@ Challenge Verifier::get_challenge(const BigNum& _A) {
   B = _math.get_B(b, k, _user.get_verifier());
   return Challenge(_math, B, _user.get_salt());
 }
-
 
 bool Verifier::verify(const BigNum& client_M) {
   bool verified = false;
