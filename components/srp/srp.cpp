@@ -89,7 +89,7 @@ BigNum Math::get_S_host(const BigNum& A, const BigNum& v, const BigNum& u, const
 
 // K = H(S)
 BigNum Math::get_K(const BigNum& S) {
-  return BigNum(_hash_fn.hash(S.export_b16()));
+  return hash({S});
 }
 
 

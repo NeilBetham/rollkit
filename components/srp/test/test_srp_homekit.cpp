@@ -36,3 +36,11 @@ TEST_CASE("HomeKit SRP Test Vectors - get_B", "[pass]") {
 TEST_CASE("HomeKit SRP Test Vectors - get_u", "[pass]") {
   TEST_ASSERT(math.get_u(tv_A(), tv_B()) == tv_u());
 }
+
+TEST_CASE("HomeKit SRP Test Vectors - get_S_host", "[pass]") {
+  TEST_ASSERT(math.get_S_host(tv_A(), tv_v(), tv_u(), tv_b()) == tv_S());
+}
+
+TEST_CASE("HomeKit SRP Test Vectors - get_K", "[pass]") {
+  TEST_ASSERT(math.get_K(tv_S()) == tv_K());
+}

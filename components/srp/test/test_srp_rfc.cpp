@@ -45,3 +45,7 @@ TEST_CASE("RFC 5054 Test Vectors - get_B", "[PASS]") {
 TEST_CASE("RFC 5054 Test Vectors - get_u", "[PASS]") {
   TEST_ASSERT(math.get_u(tv_A(), tv_B()) == tv_u());
 }
+
+TEST_CASE("RFC 5054 Test Vectors - get_S", "[PASS]") {
+  TEST_ASSERT(math.get_S_host(tv_A(), tv_v(), tv_u(), tv_b()) == tv_S());
+}
