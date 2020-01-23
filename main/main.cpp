@@ -67,12 +67,12 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
   if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
     esp_wifi_connect();
   } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+    wifi_event_sta_disconnected_t* data = (wifi_event_sta_disconnected_t*)event_data;
     esp_wifi_connect();
-    ESP_LOGI(l_tag, "retry to connect to the AP");
-    ESP_LOGI(l_tag,"connect to the AP fail");
+    ESP_LOGI(l_tag, "Disconnected(%d): retyring connection to WiFi network...", data->reason);
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-    ESP_LOGI(l_tag, "got ip:%s", ip4addr_ntoa(&event->ip_info.ip));
+    ESP_LOGI(l_tag, "Connected: IP: " IPSTR, IP2STR(&event->ip_info.ip));
     xTaskCreatePinnedToCore(&mg_task, "mg_task", 20000, NULL, 5, NULL,0);
     config_mdns();
   }
@@ -80,9 +80,10 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
 
 
 void init_wifi() {
-  tcpip_adapter_init();
+  ESP_ERROR_CHECK(esp_netif_init());
 
   ESP_ERROR_CHECK(esp_event_loop_create_default());
+  esp_netif_create_default_wifi_sta();
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -98,7 +99,7 @@ void init_wifi() {
   ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
   ESP_ERROR_CHECK(esp_wifi_start());
 
-  ESP_LOGI(l_tag, "wifi_init_sta finished.");
+  ESP_LOGI(l_tag, "WiFi Init finished.");
 }
 
 

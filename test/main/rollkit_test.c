@@ -7,15 +7,14 @@
 static void print_banner(const char* text);
 
 void run_tests() {
-  print_banner("Running all the registered tests");
+  print_banner("Running tests...");
   UNITY_BEGIN();
   unity_run_all_tests();
   UNITY_END();
   while(1) { vTaskDelay(10); }
 }
 
-void app_main()
-{
+void app_main() {
   TaskHandle_t test_task_handle = NULL;
   xTaskCreate(
     run_tests,
@@ -28,7 +27,6 @@ void app_main()
   while(1) { vTaskDelay(10); }
 }
 
-static void print_banner(const char* text)
-{
+static void print_banner(const char* text) {
     printf("\n#### %s #####\n\n", text);
 }

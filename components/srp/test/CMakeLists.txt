@@ -5,4 +5,6 @@ idf_component_register(
     "."
   REQUIRES
     unity
+    libtommath
+    srp
 )

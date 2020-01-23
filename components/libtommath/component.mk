@@ -1,2 +1,0 @@
-COMPONENT_ADD_INCLUDEDIRS := libtommath
-COMPONENT_SRCDIRS := libtommath

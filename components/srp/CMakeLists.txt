@@ -1,0 +1,13 @@
+idf_component_register(
+  SRCS
+    "math.cpp"
+    "user.cpp"
+    "utils.cpp"
+    "verifier.cpp"
+  INCLUDE_DIRS
+    "include"
+  REQUIRES
+    mbedtls
+    libtommath
+    libsodium
+)
