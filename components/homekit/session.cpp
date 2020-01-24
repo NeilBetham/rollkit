@@ -26,14 +26,35 @@ void Session::handle_request(string& data){
 }
 
 void Session::handle_message(string& data){
+  ESP_LOGD("session", "Handling message of %u bytes...", data.size());
   // Parse the http data
   struct http_message message;
   int result = mg_parse_http(data.c_str(), data.size(), &message, 1);
   if(result < 1){
     // There was an error parsing the message so return
     // TODO: Add error handling
+
+    string data_hex;
+    data_hex.reserve(data.size() * 2);
+    for(auto& byte : data) {
+      uint8_t nyble_h = (byte & 0xF0) >> 4;
+      uint8_t nyble_l = byte & 0x0F;
+
+      if(nyble_h < 10) {
+        data_hex.push_back(nyble_h + 0x30);
+      } else {
+        data_hex.push_back((nyble_h - 10) + 0x41);
+      }
+
+      if(nyble_l < 10) {
+        data_hex.push_back(nyble_l + 0x30);
+      } else {
+        data_hex.push_back((nyble_l - 10) + 0x41);
+      }
+    }
+
     ESP_LOGD("session", "Error parsing http message: %i", result);
-    ESP_LOGD("session", "Errored Request: `%s`", data.c_str());
+    ESP_LOGD("session", "Errored Request: %u - `%s`", data_hex.size(), data_hex.c_str());
     return;
   }
 

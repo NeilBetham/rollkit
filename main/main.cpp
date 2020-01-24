@@ -42,11 +42,8 @@ void mongoose_event_handler(struct mg_connection *nc, int event, void *event_dat
 void mg_task(void* data) {
   ESP_LOGD(l_tag, "Task starting");
   struct mg_mgr mgr;
-
-  ESP_LOGD(l_tag, "Starting setup");
   mg_mgr_init(&mgr, NULL);
 
-  ESP_LOGD(l_tag, "Succesfully inited");
   struct mg_connection *c = mg_bind(&mgr, ":80", mongoose_event_handler);
 
   ESP_LOGD(l_tag, "Successfully bound");

@@ -26,14 +26,14 @@ void SessionManager::handle_mg_event(struct mg_connection* nc, int event, void *
 
     // New data on existing connection
     case MG_EV_RECV: {
-      int recevied_bytes = *((int*)event_data);
+      int recevied_bytes = nc->recv_mbuf.len;
 
       // Allocate a string to fit the recevied data
       string message;
       message.resize(recevied_bytes);
 
       // Copy recived contents to local buffer
-      memcpy(&message[0], &nc->recv_mbuf, recevied_bytes);
+      memcpy(&message[0], nc->recv_mbuf.buf, recevied_bytes);
 
       // Clear mongoose buffer
       mbuf_remove(&nc->recv_mbuf, recevied_bytes);
