@@ -2,8 +2,6 @@
 
 #include <utility>
 
-#include "esp_log.h"
-
 using namespace std;
 
 string TLV::serialize() const {
@@ -56,8 +54,6 @@ vector<TLV> TLV::decode(const string& data) {
     decoded_tlvs.push_back(TLV(current_tlv_type, current_tlv_size, current_tlv_value));
   }
 
-  ESP_LOGE("TEST", "Decoded Fragments: %u", decoded_tlvs.size());
-
   vector<TLV> fragments;
   for(auto& tlv : decoded_tlvs) {
     // Check to see if this TLV matches the fragments we already have
@@ -78,8 +74,6 @@ vector<TLV> TLV::decode(const string& data) {
   if(fragments.size() > 0) {
     defraged_tlvs.push_back(combine_tlvs(fragments));
   }
-
-  ESP_LOGE("TEST", "Defraged Fragments: %u", defraged_tlvs.size());
 
   return defraged_tlvs;
 }

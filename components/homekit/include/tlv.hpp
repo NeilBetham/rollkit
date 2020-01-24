@@ -8,7 +8,7 @@
 class TLV {
 public:
   TLV() : tlv_type(0), tlv_size(0) {};
-  TLV(uint8_t _type, uint64_t _size, std::string _value): tlv_type(_type), tlv_size(_size), tlv_value(_value) {};
+  TLV(uint8_t type, std::string data) : tlv_type(type), tlv_size(data.size()), tlv_value(data) {};
   ~TLV() {};
 
   uint8_t get_type() const { return tlv_type; };
@@ -20,6 +20,8 @@ public:
   static std::string encode(const std::vector<TLV>& tlvs);
 
 private:
+  TLV(uint8_t _type, uint64_t _size, std::string _value): tlv_type(_type), tlv_size(_size), tlv_value(_value) {};
+
   uint8_t tlv_type;
   uint64_t tlv_size;
   std::string tlv_value;
