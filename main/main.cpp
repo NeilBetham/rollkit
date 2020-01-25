@@ -18,23 +18,14 @@
 #include "sdkconfig.h"
 
 #include "mdns.hpp"
-#include "session_manager.hpp"
+#include "app.hpp"
 
 static char l_tag []="http";
-SessionManager sm;
+App app;
 
-
-// Convert a Mongoose string type to a string.
-char *mg_str_to_str(struct mg_str mgStr) {
-  char *retStr = (char *) malloc(mgStr.len + 1);
-  memcpy(retStr, mgStr.p, mgStr.len);
-  retStr[mgStr.len] = 0;
-  return retStr;
-}
-
-// Simple Example HTTP event handler
+// Pass HTTP requests off to App code
 void mongoose_event_handler(struct mg_connection *nc, int event, void *event_data) {
-  sm.handle_mg_event(nc, event, event_data);
+  app.handle_mg_event(nc, event, event_data);
 }
 
 

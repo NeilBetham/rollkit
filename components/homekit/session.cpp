@@ -6,18 +6,8 @@
 
 using namespace std;
 
-Session::Session(){
-  delegate = NULL;
-  is_pair_verified = false;;
-  connection = NULL;
-}
-
-Session::~Session(){
-
-}
-
 void Session::handle_request(string& data){
-  if(is_pair_verified == true){
+  if(_is_pair_verified == true){
     // Handle decryption
   } else {
     // Handle regular message
@@ -58,10 +48,10 @@ void Session::handle_message(string& data){
     return;
   }
 
-  Request new_request(message, connection);
+  Request new_request(message, *this);
   ESP_LOGD("session", "Got Req With URI: %s", new_request.get_uri().c_str());
-  if(delegate != NULL){
-    delegate->request_recv(new_request, this);
+  if(_delegate){
+    _delegate->request_recv(new_request);
   }
 }
 

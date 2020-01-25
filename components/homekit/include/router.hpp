@@ -5,7 +5,7 @@
 #include <vector>
 #include <tuple>
 
-#include "app.hpp"
+#include "i_session_delegate.hpp"
 #include "request.hpp"
 
 class IRoute {
@@ -16,13 +16,13 @@ public:
   virtual void handle_request(Request& request) = 0;
 };
 
-class Router : public IAppDelegate {
+class Router : public ISessionDelegate {
 public:
   Router() {};
   ~Router() {};
 
-  void register_route(std::string uri, IRoute* route);
-  void route_request(Request& request);
+  virtual void register_route(std::string uri, IRoute* route);
+  virtual void request_recv(Request& request);
 
 private:
   std::vector<std::tuple<std::string, IRoute*> > routes;

@@ -4,22 +4,24 @@
 #include <string>
 #include <unordered_map>
 
+#include <esp_log.h>
+
 #include "mongoose.h"
-#include "session.hpp"
-#include "i_app_delegate.hpp"
+#include "router.hpp"
+#include "session_manager.hpp"
 
 
 class App {
 public:
-  void handle_event(struct mg_connection *nc, int ev, void *ev_data);
-  void set_delegate(IAppDelegate* _delegate) { delegate = _delegate; };
+  App() : _session_manager(&_router) {};
+
+  void handle_mg_event(struct mg_connection *nc, int event, void *event_data) {
+    _session_manager.handle_mg_event(nc, event, event_data);
+  }
 
 private:
-  void handle_new_connection(struct mg_connection *nc, void *ev_data);
-  void handle_new_data(struct mg_connection *nc, void *ev_data);
-
-  IAppDelegate* delegate;
-  std::unordered_map<mg_connection*, IAppDelegate*> sessions;
+  Router _router;
+  SessionManager _session_manager;
 };
 
 #endif // APP_HPP

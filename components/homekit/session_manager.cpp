@@ -1,13 +1,14 @@
 #include <string>
 #include <cstring>
+#include <utility>
+#include <functional>
 
 #include "session_manager.hpp"
 #include "request.hpp"
 
 using namespace std;
 
-SessionManager::SessionManager(){
-
+SessionManager::SessionManager(ISessionDelegate* delegate) : _session_delegate(delegate) {
 }
 
 SessionManager::~SessionManager(){
@@ -20,7 +21,7 @@ void SessionManager::handle_mg_event(struct mg_connection* nc, int event, void *
   switch(event){
     // New connection
     case MG_EV_ACCEPT: {
-      sessions[nc].set_mg_connection(nc);
+      sessions.emplace(std::piecewise_construct, std::make_tuple(nc), std::make_tuple(_session_delegate, nc));
       break;
     }
 
