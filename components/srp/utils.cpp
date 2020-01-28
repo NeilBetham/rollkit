@@ -3,6 +3,8 @@
 #include <sodium.h>
 #include <string>
 
+#include "esp_log.h"
+
 using namespace std;
 
 namespace SRP {
@@ -17,9 +19,9 @@ BigNum random(int byte_count) {
   string temp;
   temp.resize(byte_count);
 
-  randombytes_buf((void*) temp.data(), byte_count);
+  randombytes_buf((void*)temp.data(), byte_count);
 
-  return BigNum(temp);
+  return BigNum::from_raw(temp);
 }
 
 

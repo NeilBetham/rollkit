@@ -6,15 +6,9 @@
 #include <tuple>
 
 #include "i_session_delegate.hpp"
+#include "i_route.hpp"
 #include "request.hpp"
 
-class IRoute {
-public:
-  IRoute() {};
-  virtual ~IRoute() {};
-
-  virtual void handle_request(Request& request) = 0;
-};
 
 class Router : public ISessionDelegate {
 public:

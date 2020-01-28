@@ -1,8 +1,9 @@
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
+#include "session.hpp"
+
 #include <esp_log.h>
 
-#include "session.hpp"
 #include "request.hpp"
+#include "utils.hpp"
 
 using namespace std;
 
@@ -24,27 +25,8 @@ void Session::handle_message(string& data){
     // There was an error parsing the message so return
     // TODO: Add error handling
 
-    string data_hex;
-    data_hex.reserve(data.size() * 2);
-    for(auto& byte : data) {
-      uint8_t nyble_h = (byte & 0xF0) >> 4;
-      uint8_t nyble_l = byte & 0x0F;
-
-      if(nyble_h < 10) {
-        data_hex.push_back(nyble_h + 0x30);
-      } else {
-        data_hex.push_back((nyble_h - 10) + 0x41);
-      }
-
-      if(nyble_l < 10) {
-        data_hex.push_back(nyble_l + 0x30);
-      } else {
-        data_hex.push_back((nyble_l - 10) + 0x41);
-      }
-    }
-
     ESP_LOGD("session", "Error parsing http message: %i", result);
-    ESP_LOGD("session", "Errored Request: %u - `%s`", data_hex.size(), data_hex.c_str());
+    ESP_LOGD("session", "Errored Request: %u - `%s`", data.size(), to_hex(data).c_str());
     return;
   }
 
@@ -56,6 +38,7 @@ void Session::handle_message(string& data){
 }
 
 void Session::close(){
+  _connection->flags |= MG_F_CLOSE_IMMEDIATELY;
 }
 
 bool Session::is_closed(){
@@ -63,7 +46,16 @@ bool Session::is_closed(){
 }
 
 void Session::head(int code){
+  mg_send_head(_connection, code, 0, "Content-Type: text/plain");
 }
 
-void Session::send(int code, string& data){
+void Session::send(int code, const string& data, const string& content_type){
+  string header_fmt = "HTTP/1.1 %d %s\r\nContent-Length: %d\r\nContent-Type: %s\r\n\r\n";
+  int buf_size = snprintf(NULL, 0, header_fmt.c_str(), code, mg_status_message(code), data.size(), content_type.c_str());
+  string header(buf_size, 0);
+  (void)sprintf(&(header[0]), header_fmt.c_str(), code, mg_status_message(code), data.size(), content_type.c_str());
+
+  mg_send(_connection, header.c_str(), header.size());
+  mg_send(_connection, data.c_str(), data.size());
+  ESP_LOGD("session", "Sending %u bytes", data.size());
 }

@@ -6,6 +6,7 @@
 #include "mongoose.h"
 #include "i_session_delegate.hpp"
 #include "i_session.hpp"
+#include "tlv.hpp"
 
 
 class Session : public ISession {
@@ -18,7 +19,7 @@ public:
   void handle_request(std::string& data);
 
   void head(int code);
-  void send(int code, std::string& message);
+  void send(int code, const std::string& message, const std::string& content_type);
   void close();
   bool is_closed();
 

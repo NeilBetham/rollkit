@@ -82,8 +82,8 @@ BigNum Math::get_K(const BigNum& S) {
 
 // Client M = H(H(N) xor H(g), H(I), s, A, B, K)
 BigNum Math::get_M_client(const string& username, const BigNum& s, const BigNum& A, const BigNum& B, const BigNum& K) {
-  BigNum hn = BigNum(_hash_fn.hash(_prime.export_b16()));
-  BigNum hg = BigNum(_hash_fn.hash(_generator.export_b16()));
+  BigNum hn = BigNum(_hash_fn.hash(_prime.export_raw()));
+  BigNum hg = BigNum(_hash_fn.hash(_generator.export_raw()));
   BigNum hxor = hn ^ hg;
   BigNum hu = BigNum(_hash_fn.hash(username));
   return hash({hxor, hu, s, A, B, K});

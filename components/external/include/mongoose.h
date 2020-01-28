@@ -4415,6 +4415,8 @@ struct mg_ssi_call_ctx {
  */
 void mg_set_protocol_http_websocket(struct mg_connection *nc);
 
+const char *mg_status_message(int status_code);
+
 #if MG_ENABLE_HTTP_WEBSOCKET
 /*
  * Send websocket handshake to the server.

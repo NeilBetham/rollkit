@@ -3,6 +3,8 @@
 #include <utility>
 #include <functional>
 
+#include "esp_log.h"
+
 #include "session_manager.hpp"
 #include "request.hpp"
 
@@ -50,8 +52,14 @@ void SessionManager::handle_mg_event(struct mg_connection* nc, int event, void *
         // If the session exists close it
         sessions[nc].close();
         sessions.erase(nc);
+        ESP_LOGI("session-manager", "Connection Closed: %p", nc);
       }
       break;
+    }
+
+    case MG_EV_SEND : {
+      int* bytes_sent = (int*)event_data;
+      ESP_LOGD("session-manager", "MG Sent %i bytes", *bytes_sent);
     }
     default:
       break;

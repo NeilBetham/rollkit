@@ -2,6 +2,8 @@
 
 #include <utility>
 
+#include "utils.hpp"
+
 using namespace std;
 
 string TLV::serialize() const {
@@ -32,22 +34,26 @@ string TLV::serialize() const {
   return ret;
 }
 
-vector<TLV> TLV::decode(const string& data) {
+string TLV::get_value_hex() const {
+  return to_hex(tlv_value);
+}
+
+TLVs TLV::decode(const string& data) {
   vector<TLV> decoded_tlvs;
   vector<TLV> defraged_tlvs;
 
   for(auto it = data.begin(); it < data.end();) {
     int16_t current_tlv_type = *it++;
-    if(it > data.end()) { return {}; } // Safety check to prevent reading reading out of bounds
+    if(it > data.end()) { return TLVs({}); } // Safety check to prevent reading reading out of bounds
 
     int16_t current_tlv_size = *it++;
-    if(it > data.end()) { return {}; } // Safety check to prevent reading reading out of bounds
+    if(it > data.end()) { return TLVs({}); } // Safety check to prevent reading reading out of bounds
 
     string current_tlv_value;
 
     current_tlv_value.reserve(current_tlv_size);
     for(uint64_t count = 0; count < current_tlv_size; count++) {
-      if(it > data.end()) { return {}; } // Safety check to prevent reading reading out of bounds
+      if(it > data.end()) { return TLVs({}); } // Safety check to prevent reading reading out of bounds
       current_tlv_value.push_back(*it++);
     }
 
@@ -75,7 +81,7 @@ vector<TLV> TLV::decode(const string& data) {
     defraged_tlvs.push_back(combine_tlvs(fragments));
   }
 
-  return defraged_tlvs;
+  return TLVs(defraged_tlvs);
 }
 
 string TLV::encode(const vector<TLV>& tlvs) {
@@ -99,4 +105,15 @@ TLV TLV::combine_tlvs(const vector<TLV>& tlvs) {
   }
 
   return TLV(type, size, move(value));
+}
+
+
+optional<TLV> TLVs::find(uint8_t type) {
+  for(auto& tlv : _tlvs) {
+    if(tlv.get_type() == type) {
+      return tlv;
+    }
+  }
+
+  return {};
 }

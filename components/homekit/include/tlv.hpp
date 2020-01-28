@@ -5,6 +5,10 @@
 #include <vector>
 #include <string>
 
+#include "optional.hpp"
+
+class TLVs;
+
 class TLV {
 public:
   TLV() : tlv_type(0), tlv_size(0) {};
@@ -15,8 +19,9 @@ public:
   uint64_t length() const { return tlv_size; };
   std::string get_value() const { return tlv_value; };
   std::string serialize() const;
+  std::string get_value_hex() const;
 
-  static std::vector<TLV> decode(const std::string& data);
+  static TLVs decode(const std::string& data);
   static std::string encode(const std::vector<TLV>& tlvs);
 
 private:
@@ -29,6 +34,17 @@ private:
   static TLV combine_tlvs(const std::vector<TLV>& tlvs);
 };
 
+
+class TLVs {
+public:
+  TLVs(std::vector<TLV> tlvs) : _tlvs(tlvs) {};
+
+  optional<TLV> find(uint8_t type);
+  const std::vector<TLV>& get() { return _tlvs; };
+
+private:
+  std::vector<TLV> _tlvs;
+};
 
 
 #endif // TLV_HPP

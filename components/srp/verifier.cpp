@@ -5,18 +5,15 @@
 namespace SRP {
 
 
-Challenge Verifier::get_challenge(const BigNum& _A) {
-  if((A % _math.N()) == 0) {
-    A = _A;
-  }
-
+Challenge Verifier::get_challenge() {
   k = _math.get_k();
   b = random(32);
   B = _math.get_B(b, k, _user.get_verifier());
   return Challenge(_math, B, _user.get_salt());
 }
 
-bool Verifier::verify(const BigNum& client_M) {
+bool Verifier::verify(const BigNum& _A, const BigNum& client_M) {
+  A = _A;
   bool verified = false;
   BigNum u = _math.hash({A, B});
   S = _math.get_S_host(A, _user.get_verifier(), u, b);

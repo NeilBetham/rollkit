@@ -1,6 +1,7 @@
 idf_component_register(
   SRC_DIRS
-    "."
+    "src"
+    "src/routes"
   INCLUDE_DIRS
     "include"
   REQUIRES

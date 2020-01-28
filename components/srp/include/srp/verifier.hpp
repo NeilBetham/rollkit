@@ -17,8 +17,8 @@ class Verifier {
 public:
   Verifier(Math& math, const User& user) : _math(math), _user(user) {};
 
-  Challenge get_challenge(const BigNum& _A);
-  bool verify(const BigNum& M);
+  Challenge get_challenge();
+  bool verify(const BigNum& A, const BigNum& M);
   BigNum get_client_proof() { return H_AMK; };
 
 private:
