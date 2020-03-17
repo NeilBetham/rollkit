@@ -24,7 +24,7 @@ public:
   PairSetup() :
     // TODO: Reset these classes when auth fails
     _srp_math(_srp_hash_fn, {HAP_SRP_MODULUS}, {HAP_SRP_GENERATOR}),
-    _srp_user(SRP::User::fromPassword(_srp_math, "Pair-Setup", "36498234")),
+    _srp_user(SRP::User::fromPassword(_srp_math, "Pair-Setup", "364-98-234")),
     _srp_verifier(_srp_math, _srp_user)
     {};
 

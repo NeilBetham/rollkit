@@ -9,14 +9,16 @@ using namespace std;
 namespace SRP {
 
 
-BigNum Math::hash(const vector<BigNum>& h) {
+BigNum Math::hash(const vector<BigNum>& h, bool pad) {
   uint64_t safe_prime_size = _prime.export_raw().size(); // TODO: Optimize
   string to_hash;
 
   for(auto& val : h) {
     string val_to_pad = val.export_raw();
-    for(int i = val_to_pad.size(); i < safe_prime_size; i++) {
-      val_to_pad.insert(val_to_pad.begin(), 0);
+    if(pad) {
+      for(int i = val_to_pad.size(); i < safe_prime_size; i++) {
+        val_to_pad.insert(val_to_pad.begin(), 0);
+      }
     }
     to_hash += val_to_pad;
   }
@@ -82,17 +84,16 @@ BigNum Math::get_K(const BigNum& S) {
 
 // Client M = H(H(N) xor H(g), H(I), s, A, B, K)
 BigNum Math::get_M_client(const string& username, const BigNum& s, const BigNum& A, const BigNum& B, const BigNum& K) {
-  BigNum hn = BigNum(_hash_fn.hash(_prime.export_raw()));
-  BigNum hg = BigNum(_hash_fn.hash(_generator.export_raw()));
-  BigNum hxor = hn ^ hg;
-  BigNum hu = BigNum(_hash_fn.hash(username));
-  return hash({hxor, hu, s, A, B, K});
+  BigNum hn = BigNum::from_raw(_hash_fn.hash(_prime.export_raw()));
+  BigNum hg = BigNum::from_raw(_hash_fn.hash(_generator.export_raw()));
+  BigNum hu = BigNum::from_raw(_hash_fn.hash(username));
+  return hash({hn ^ hg, hu, s, A, B, K}, false);
 }
 
 
 // Host M = H(A, M, K)
 BigNum Math::get_M_host(const BigNum& A, const BigNum& M, const BigNum& K) {
-  return hash({A, M, K});
+  return hash({A, M, K}, false);
 }
 
 

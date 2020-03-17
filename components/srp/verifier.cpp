@@ -15,7 +15,7 @@ Challenge Verifier::get_challenge() {
 bool Verifier::verify(const BigNum& _A, const BigNum& client_M) {
   A = _A;
   bool verified = false;
-  BigNum u = _math.hash({A, B});
+  BigNum u = _math.get_u(A, B);
   S = _math.get_S_host(A, _user.get_verifier(), u, b);
   K = _math.get_K(S);
   M = _math.get_M_client(_user.get_username(), _user.get_salt(), A, B, K);

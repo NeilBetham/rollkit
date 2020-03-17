@@ -43,13 +43,13 @@ public:
   // K = H(S)
   BigNum get_K(const BigNum& S);
 
-  // Client M = H(H(N) xor H(g), H(I), s, A, B, K)
+  // Client M = H(H(N) xor H(g), H(I), s, A, B, K) (M1)
   BigNum get_M_client(const std::string& username, const BigNum& s, const BigNum& A, const BigNum& B, const BigNum& K);
 
-  // Host M = H(A, M, K)
+  // Host M = H(A, M, K) (M2)
   BigNum get_M_host(const BigNum& A, const BigNum& M, const BigNum& K);
 
-  BigNum hash(const std::vector<BigNum>& h);
+  BigNum hash(const std::vector<BigNum>& h, bool pad = true);
 
   BigNum N() { return _prime; };
   BigNum g() { return _generator; };

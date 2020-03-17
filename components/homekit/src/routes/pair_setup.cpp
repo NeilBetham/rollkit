@@ -94,6 +94,9 @@ void PairSetup::handle_m3(Request& request, TLVs& tlvs) {
   resp += TLV(HAP_TLV_TYPE_STATE, {0x04}).serialize();
   resp += TLV(HAP_TLV_TYPE_PROOF, _srp_verifier.get_client_proof().export_raw()).serialize();
   request.get_session().send(200, resp, "application/pairing+tlv8");
+
+  // Set PairState
+  _setup_stage = PairState::M4;
 }
 
 void PairSetup::handle_m5(Request& request, TLVs& tlvs) {

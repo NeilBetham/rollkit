@@ -37,6 +37,10 @@ A1C5A18FEC326813942DBFB11B9E0B4C6D980D4CA47C50CFBC52BAD5\
 "))
 }
 
+TEST_CASE("BigNum: xor - 9 ^ 4 == D", "[pass]") {
+  TEST_ASSERT((BigNum(9) ^ BigNum(4)) == 0xD);
+}
+
 TEST_CASE("BigNum: mod - 10 % 5 == 0", "[pass]") {
   TEST_ASSERT(BigNum(10) % BigNum(5) == 0);
 }

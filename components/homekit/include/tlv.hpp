@@ -41,6 +41,8 @@ public:
 
   optional<TLV> find(uint8_t type);
   const std::vector<TLV>& get() { return _tlvs; };
+  TLV& operator[](size_t index) { return _tlvs[index]; };
+  size_t size() { return _tlvs.size(); };
 
 private:
   std::vector<TLV> _tlvs;
