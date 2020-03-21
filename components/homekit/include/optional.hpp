@@ -16,32 +16,32 @@ public:
   optional(optional<U> const &rhs) : _has_value(rhs._has_value), _value(rhs.value()) {}
 
   template <class U>
-  optional &operator=(optional<U> const &rhs) {
+  optional& operator=(optional<U> const &rhs) {
       _has_value = rhs._has_value;
       _value = rhs.value();
       return *this;
   }
 
   template <class U>
-  optional &operator=(optional<U> &&rhs) {
+  optional& operator=(optional<U> &&rhs) {
       _has_value = rhs._has_value;
       _value = std::move(rhs.value());
       return *this;
   }
 
-  T const &operator*() const { return value(); }
-  T &operator*() { return value(); }
-  T const *operator->() const { return &_value; }
-  T *operator->() { return &_value; }
+  const T& operator*() const { return value(); }
+  T& operator*() { return value(); }
+  const T* operator->() const { return &_value; }
+  T* operator->() { return &_value; }
 
   operator bool() const { return _has_value; }
   bool has_value() const { return _has_value; }
 
-  T const &value() const {
+  const T& value() const {
       return _value;
   }
 
-  T &value() {
+  T& value() {
       return _value;
   }
 

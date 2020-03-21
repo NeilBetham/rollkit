@@ -20,6 +20,7 @@ public:
   Challenge get_challenge();
   bool verify(const BigNum& A, const BigNum& M);
   BigNum get_client_proof() { return H_AMK; };
+  BigNum get_shared_secret() { return S; }; 
 
 private:
   Math& _math;

@@ -10,7 +10,7 @@ static const char* config_number_key = "c#";
 static const char* config_number_value = "2";
 
 static const char* feature_flags_key = "ff";
-static const char* feature_flags_value = "1";
+static const char* feature_flags_value = "0";
 
 static const char* device_id_key = "id";
 static const char* device_id_value = "32:09:CD:BD:FF:AC";
