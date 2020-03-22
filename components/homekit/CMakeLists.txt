@@ -8,4 +8,5 @@ idf_component_register(
     srp
     mdns
     external
+    nvs_flash
 )

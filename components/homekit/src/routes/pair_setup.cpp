@@ -6,6 +6,9 @@
 #include "srp.hpp"
 #include "cryptor.hpp"
 #include "hkdf.hpp"
+#include "ed25519.hpp"
+#include "host_info.hpp"
+#include "key_storage.hpp"
 
 using namespace std;
 
@@ -103,10 +106,6 @@ void PairSetup::handle_m3(Request& request, TLVs& tlvs) {
 
 void PairSetup::handle_m5(Request& request, TLVs& tlvs) {
   ESP_LOGI("pair-setup", "Handling M5");
-  ESP_LOGD("pair-setup", "TLVs:");
-  for(auto& tlv : tlvs.get()) {
-    ESP_LOGD("pair-setup", "Type %u, Value %s", tlv.get_type(), tlv.get_value_hex().c_str());
-  }
 
   // Get the encrypted TLV
   auto encrypted_tlv = tlvs.find(HAP_TLV_TYPE_ENCRYPTED_DATA);
@@ -118,13 +117,14 @@ void PairSetup::handle_m5(Request& request, TLVs& tlvs) {
   }
 
   // Decrypt TLV
-  string srp_shared_secret = hkdf_sha512(
-    _srp_verifier.get_shared_secret().export_raw(),
+  auto srp_shared_secret = _srp_verifier.get_shared_secret().export_raw();
+  string session_key = hkdf_sha512(
+    srp_shared_secret,
     "Pair-Setup-Encrypt-Salt",
     "Pair-Setup-Encrypt-Info",
     crypto_aead_chacha20poly1305_IETF_KEYBYTES
   );
-  Cryptor cryptor(srp_shared_secret, "PS-Msg05");
+  Cryptor cryptor(session_key, "PS-Msg05");
   auto decrypted_tlv = cryptor.decrypt(encrypted_tlv->get_value());
   if(!decrypted_tlv) {
     ESP_LOGE("pair-setup", "Failed to authenticate encrypted tlv");
@@ -148,14 +148,56 @@ void PairSetup::handle_m5(Request& request, TLVs& tlvs) {
     return;
   }
 
-  // Generate iOSDeviceX
-  auto iosdevicex = hkdf_sha512(
+  // Generate iosdevice_x
+  auto iosdevice_x = hkdf_sha512(
     srp_shared_secret,
     "Pair-Setup-Controller-Sign-Salt",
     "Pair-Setup-Controller-Sign-Info",
     32
   );
 
+  // Build iOSDeviceInfo
+  string iosdevice_info = iosdevice_x + id_tlv->get_value() + public_key_tlv->get_value();
+
+  // Verify Signature
+  if(!verify_ed25519(signature_tlv->get_value(), iosdevice_info, public_key_tlv->get_value())) {
+    ESP_LOGE("pair-setup", "Failed to verify signature");
+    string resp;
+    resp += TLV(HAP_TLV_TYPE_STATE, {0x06}).serialize();
+    resp += TLV(HAP_TLV_TYPE_ERROR, {HAP_TLV_ERROR_AUTH}).serialize();
+    request.get_session().send(200, resp, "application/pairing+tlv8");
+    reset();
+    return;
+  }
+  ESP_LOGI("pair-setup", "iOS Signature verified");
+
+  // Generate accessory_x
+  auto accessory_x = hkdf_sha512(
+    srp_shared_secret,
+    "Pair-Setup-Accessory-Sign-Salt",
+    "Pair-Setup-Accessory-Sign-Info",
+    32
+  );
+
+  // Build AccessoryInfo
+  string accessory_info = accessory_x + get_mac_address() + get_public_key();
+
+  // Sign the accessory_info
+  auto signature = sign_ed25519(accessory_info, get_private_key());
+
+  // Build TLV to send back to client
+  string resp;
+  resp += TLV(HAP_TLV_TYPE_IDENTIFIER, get_mac_address()).serialize();
+  resp += TLV(HAP_TLV_TYPE_PUB_KEY, get_public_key()).serialize();
+  resp += TLV(HAP_TLV_TYPE_SIGNATURE, signature).serialize();
+
+  // Encrypt TLV and send
+  cryptor.set_nonce("PS-Msg06");
+  auto encrypted_data = cryptor.encrypt(resp);
+  string wrapper_resp;
+  wrapper_resp += TLV(HAP_TLV_TYPE_STATE, {0x06}).serialize();
+  wrapper_resp += TLV(HAP_TLV_TYPE_ENCRYPTED_DATA, encrypted_data).serialize();
+  request.get_session().send(200, wrapper_resp, "application/pairing+tlv8");
 
   // Set PairState
   _setup_stage = PairState::M6;

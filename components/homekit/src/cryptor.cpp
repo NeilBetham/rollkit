@@ -54,12 +54,6 @@ optional<std::string> Cryptor::decrypt(const std::string& cypher_text) {
 
   // Check if auth / decryption passed
   if(res != 0) {
-    ESP_LOGI("Cryptor", "Nonce: %s", _nonce.data());
-    ESP_LOGI("Cryptor", "Nonce Size: %d", _nonce.size());
-
-    ESP_LOGI("Cryptor", "Key Size: %d", _key.size());
-    ESP_LOGI("Cryptor", "Expected Key Size: %d", crypto_aead_chacha20poly1305_KEYBYTES);
-
     return {};
   }
 

@@ -8,26 +8,31 @@ using namespace std;
 
 // See: https://tools.ietf.org/html/rfc5869
 
-namespace {
+namespace internal {
 
-string expand(const string& salt, const string& key) {
-  string prk(crypto_auth_hmacsha512_BYTES, 0);
-  crypto_auth_hmacsha512((uint8_t*)&prk[0], (uint8_t*)key.data(), key.size(), (uint8_t*)salt.data());
-  return prk;
+string hmac_sha512(const string& key, const string& message) {
+  string hmac_out(crypto_auth_hmacsha512_BYTES, 0);
+  crypto_auth_hmacsha512_state state;
+
+  crypto_auth_hmacsha512_init(&state, (uint8_t*)key.data(), key.size());
+  crypto_auth_hmacsha512_update(&state, (uint8_t*)message.data(), message.size());
+  crypto_auth_hmacsha512_final(&state, (uint8_t*)&hmac_out[0]);
+
+  return hmac_out;
 }
 
-string extract(const string& prk, const string& info, uint64_t out_len) {
+string extract(const string& salt, const string& key) {
+  return hmac_sha512(salt, key);
+}
+
+string expand(const string& prk, const string& info, uint64_t out_len) {
   string out;
-  string tmp(crypto_auth_hmacsha512_BYTES, 0);
+  string tmp;
   uint8_t iter_count = 1;
 
   while(out.size() < out_len) {
-    string input;
-    if(iter_count != 1) { input += tmp; }
-    input += info;
-    input += string(1, (char)iter_count);
-
-    crypto_auth_hmacsha512((uint8_t*)&tmp[0], (uint8_t*)&input[0], input.size(), (uint8_t*)prk.data());
+    string input = tmp + info + string(1, (uint8_t)iter_count);
+    tmp = hmac_sha512(prk, input);
     out += tmp;
     iter_count++;
   }
@@ -38,9 +43,9 @@ string extract(const string& prk, const string& info, uint64_t out_len) {
   return out;
 }
 
-} // namespace
+} // internal namespace
 
 string hkdf_sha512(const string& key, const string& salt, const string& info, uint64_t out_size) {
-  auto prk = expand(salt, key);
-  return extract(prk, info, out_size);
+  auto prk = internal::extract(salt, key);
+  return internal::expand(prk, info, out_size);
 }
