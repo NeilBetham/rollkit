@@ -1,7 +1,9 @@
 #include <mdns.h>
 #include <esp_log.h>
+#include <string.h>
 
 #include "config.hpp"
+#include "host_info.hpp"
 
 static char mdns_l_tag[] = "mdns";
 
@@ -12,8 +14,9 @@ static const char* config_number_value = "2";
 static const char* feature_flags_key = "ff";
 static const char* feature_flags_value = "0";
 
+
 static const char* device_id_key = "id";
-static const char* device_id_value = "32:09:CD:BD:FF:AC";
+static const char* device_id_value = "00:00:00:00:00:00";
 
 static const char* model_name_key = "md";
 static const char* model_name_value = ACC_MODEL;
@@ -49,6 +52,11 @@ void config_mdns(){
       printf("MDNS Init failed: %d\n", err);
       return;
   }
+
+  // Set proper mac address
+  char* mac_addr = (char*)malloc(sizeof(char) * 18);
+  auto dc = strcpy(mac_addr, get_mac_address().c_str());
+  hap_txt_data[2].value = mac_addr;
 
   ESP_ERROR_CHECK(mdns_hostname_set(ACC_NAME));
   ESP_ERROR_CHECK(mdns_service_add(ACC_NAME, "_hap", "_tcp", 80, hap_txt_data, 8));
