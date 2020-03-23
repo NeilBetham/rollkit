@@ -51,6 +51,23 @@ optional<std::string> NVSManager::read_blob(const std::string& key) {
   return blob_data;
 }
 
+bool NVSManager::write_uint32(const std::string& key, const uint32_t value) {
+  if(!_valid) { return {}; }
+  esp_err_t err = nvs_set_u32(_nvs_handle, key.c_str(), value);
+  if(err != ESP_OK) { ESP_LOGI("nsv-mgr", "Failed to set u32 Key: %s", key.c_str()); return false; }
+
+  return true;
+}
+
+optional<uint32_t> NVSManager::read_uint32(const std::string& key) {
+  if(!_valid) { return {}; }
+  uint32_t value = 0;
+  esp_err_t err = nvs_get_u32(_nvs_handle, key.c_str(), &value);
+  if(err != ESP_OK) { ESP_LOGI("nsv-mgr", "Failed to get u32 Key: %s", key.c_str()); return {}; }
+
+  return {value};
+}
+
 bool NVSManager::erase_key(const string& key) {
   if(!_valid) { return {}; }
   esp_err_t err;

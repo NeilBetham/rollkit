@@ -17,6 +17,10 @@ public:
 
   bool write_blob(const std::string& key, const std::string& blob);
   optional<std::string> read_blob(const std::string& key);
+
+  bool write_uint32(const std::string& key, const uint32_t value);
+  optional<uint32_t> read_uint32(const std::string& key);
+
   bool erase_key(const std::string& key);
 
 private:

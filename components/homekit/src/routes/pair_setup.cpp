@@ -9,6 +9,7 @@
 #include "ed25519.hpp"
 #include "host_info.hpp"
 #include "key_storage.hpp"
+#include "pairing_manager.hpp"
 
 using namespace std;
 
@@ -41,7 +42,7 @@ void PairSetup::handle_m1(Request& request, TLVs& tlvs) {
 
   // Check we are receiving the correct setup params
   if(hap_method && (hap_method->get_value()[0] != HAP_TLV_METHOD_PAIR_SETUP)) {
-    ESP_LOGE("pair-setup", "Client requesting unsupported pair setup with alternate auth");
+    ESP_LOGE("pair-setup", "Client requesting unsupported pair setup: %d", hap_method->get_value()[0]);
     reset();
     request.get_session().close();
     return;
@@ -77,10 +78,6 @@ void PairSetup::handle_m3(Request& request, TLVs& tlvs) {
   }
   BigNum pub_key = BigNum::from_raw(ios_pub_key->get_value());
   BigNum proof   = BigNum::from_raw(ios_proof->get_value());
-
-  ESP_LOGD("pair-setup", "iOS Pub Key: 0x%s", pub_key.export_b16().c_str());
-  ESP_LOGD("pair-setup", "iOS Proof: 0x%s", proof.export_b16().c_str());
-
 
   // Update the verifier with the pub key and proof and see if they checkout
   bool verified = _srp_verifier.verify(pub_key, proof);
@@ -170,6 +167,19 @@ void PairSetup::handle_m5(Request& request, TLVs& tlvs) {
     return;
   }
   ESP_LOGI("pair-setup", "iOS Signature verified");
+
+  // Save the pairing
+  Pairing pairing(id_tlv->get_value(), public_key_tlv->get_value());
+  PairingManager pm;
+  if(!pm.add_pairing(pairing)) {
+    ESP_LOGE("pair-setup", "Failed save pairing");
+    string resp;
+    resp += TLV(HAP_TLV_TYPE_STATE, {0x06}).serialize();
+    resp += TLV(HAP_TLV_TYPE_ERROR, {HAP_TLV_ERROR_MAX_PEERS}).serialize();
+    request.get_session().send(200, resp, "application/pairing+tlv8");
+    reset();
+    return;
+  }
 
   // Generate accessory_x
   auto accessory_x = hkdf_sha512(

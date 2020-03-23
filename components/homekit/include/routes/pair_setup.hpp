@@ -35,10 +35,10 @@ private:
   void handle_m3(Request& request, TLVs& tlvs);
   void handle_m5(Request& request, TLVs& tlvs);
 
-  void reset() { _pair_setup_conn = nullptr; _setup_stage = PairState::M0; };
+  void reset() { _pair_in_progress = false; _setup_stage = PairState::M0; };
 
   // If this prop is not null then pairing is in progress
-  void* _pair_setup_conn;
+  bool _pair_in_progress;
   PairState _setup_stage;
 
   SRP::SHA512 _srp_hash_fn;

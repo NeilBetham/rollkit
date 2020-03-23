@@ -22,12 +22,16 @@ public:
   void send(int code, const std::string& message, const std::string& content_type);
   void close();
   bool is_closed();
+  void* get_identifier() { return (void*)_connection; };
+  void setup_security(const std::string& shared_secret);
 
 private:
   void handle_message(std::string& data);
 
   ISessionDelegate* _delegate;
   bool _is_pair_verified;
+  std::string _acc_to_cont_key;
+  std::string _cont_to_acc_key;
   struct mg_connection* _connection;
 };
 

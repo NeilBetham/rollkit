@@ -4,6 +4,7 @@
 
 #include "request.hpp"
 #include "utils.hpp"
+#include "hkdf.hpp"
 
 using namespace std;
 
@@ -58,4 +59,22 @@ void Session::send(int code, const string& data, const string& content_type){
   mg_send(_connection, header.c_str(), header.size());
   mg_send(_connection, data.c_str(), data.size());
   ESP_LOGD("session", "Sending %u bytes", data.size());
+}
+
+void Session::setup_security(const string& shared_secret) {
+  _acc_to_cont_key = hkdf_sha512(
+    shared_secret,
+    "Control-Salt",
+    "Control-Read-Encryption-Key",
+    32
+  );
+
+  _cont_to_acc_key = hkdf_sha512(
+    shared_secret,
+    "Control-Salt",
+    "Control-Write-Encryption-Key",
+    32
+  );
+
+  _is_pair_verified = true;
 }

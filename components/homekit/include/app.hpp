@@ -9,6 +9,7 @@
 #include "mongoose.h"
 #include "router.hpp"
 #include "routes/pair_setup.hpp"
+#include "routes/pair_verify.hpp"
 #include "session_manager.hpp"
 
 
@@ -16,6 +17,7 @@ class App {
 public:
   App() : _session_manager(&_router) {
     _router.register_route("/pair-setup", &_ps_route);
+    _router.register_route("/pair-verify", &_pv_route);
   };
 
   void handle_mg_event(struct mg_connection *nc, int event, void *event_data) {
@@ -24,6 +26,7 @@ public:
 
 private:
   routes::PairSetup _ps_route;
+  routes::PairVerify _pv_route;
   Router _router;
   SessionManager _session_manager;
 };

@@ -167,3 +167,14 @@ TEST_CASE("Test SHA512 HKDF Test Vectors D", "[pass]") {
   TEST_ASSERT_EQUAL_INT(hkdf.size(), l);
   TEST_ASSERT_EQUAL_STRING(hkdf.data(), okm.data());
 }
+
+TEST_CASE("Test SHA512 HKDF HomeKit Example", "[pass]") {
+  auto ikm = to_bin("d9c888241d973354f03dcd6896ec23dbc08369996a96999ae81fc6702b7c1123");
+  string salt = "Pair-Verify-Encrypt-Salt";
+  string info = "Pair-Verify-Encrypt-Info";
+  int l = 32;
+  auto okm = to_bin("1d3199ed3c0e2f398ec6f37f9baf4e6ecd7556a5a9a48464e1acf6313f0d96d1");
+
+  auto hkdf = hkdf_sha512(ikm, salt, info, l);
+  TEST_ASSERT_EQUAL_STRING(hkdf.data(), okm.data());
+}
