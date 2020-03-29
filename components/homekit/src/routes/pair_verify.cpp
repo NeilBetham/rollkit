@@ -150,7 +150,7 @@ void PairVerify::handle_m3(Request& request, TLVs& tlvs, VerifyState& state) {
   request.get_session().send(200, resp, "application/pairing+tlv8");
 
   // Setup the session
-  request.get_session().setup_security(state.session_key);
+  request.get_session().setup_security(state.session_key, pairing->is_admin());
 }
 
 } // namespace routes

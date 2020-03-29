@@ -8,15 +8,26 @@ using namespace std;
 
 namespace {
 
-constexpr size_t pairing_id_bytes = 36;
-constexpr size_t public_key_bytes = crypto_sign_PUBLICKEYBYTES;
-const string nvs_key_pairing_prefix = "p.";
-const string nvs_key_pair_count = "p.count";
+const string nvs_key_pair_index = "p.count";
+const string nvs_key_pairing_prefix = "p";
+
+const size_t max_esp_nvs_key_length = 15;
+const uint64_t max_pairing_index = stoi(string((max_esp_nvs_key_length - 1) - nvs_key_pairing_prefix.size(), 9));
+
+const size_t pairing_id_bytes = 36;
+const size_t public_key_bytes = crypto_sign_PUBLICKEYBYTES;
 
 struct PairData {
   char id[pairing_id_bytes];
   char pk[public_key_bytes];
 };
+
+Pairing to_pairing(const PairData& pd) {
+  string id(pd.id, pairing_id_bytes);
+  string pk(pd.pk, public_key_bytes);
+  return {id, pk};
+}
+
 
 } // namespace
 
@@ -29,8 +40,8 @@ bool PairingManager::add_pairing(const Pairing& pairing) {
     _nvsmgr.erase_key(*previous_pairing);
   }
 
-  // Get the key for the new pairing
-  string key = get_pairing_key();
+  // Get the storage key for the new pairing
+  string key = get_next_pairing_key();
   PairData pd;
   memset(&pd, 0, sizeof(pd));
 
@@ -46,7 +57,10 @@ bool PairingManager::add_pairing(const Pairing& pairing) {
   string blob((char*)&pd, sizeof(pd));
 
   // Store the pairing data
-  return _nvsmgr.write_blob(key, blob);
+  if(_nvsmgr.write_blob(key, blob)) {
+    return inc_pairing_index();
+  }
+  return false;
 }
 
 bool PairingManager::remove_pairing(const std::string& pairing_id) {
@@ -68,13 +82,62 @@ optional<Pairing> PairingManager::find_pairing(const std::string& pairing_id) {
   return Pairing({pd.id}, {pd.pk});
 }
 
-string PairingManager::get_pairing_key() {
-  uint32_t pair_count = 0;
-  auto nvs_pair_count = _nvsmgr.read_uint32(nvs_key_pair_count);
-  if(nvs_pair_count){ pair_count = nvs_pair_count.value(); }
-  _nvsmgr.write_uint32(nvs_key_pair_count, ++pair_count);
+std::list<Pairing> PairingManager::get_all_pairings() {
+  list<Pairing> pairings;
+  nvs_iterator_t nvs_iter = nvs_entry_find("nvs", storage_namespace.c_str(), NVS_TYPE_BLOB);
+  nvs_entry_info_t entry_info;
 
-  return nvs_key_pairing_prefix + to_string(pair_count);
+  // TODO: DRY this up with find_pairing_key
+  while(nvs_iter != NULL) {
+    PairData pd;
+    nvs_entry_info(nvs_iter, &entry_info);
+
+    // Check that the key has the pairing prefix
+    auto key_prefix = string(entry_info.key, nvs_key_pairing_prefix.size());
+    if(key_prefix != nvs_key_pairing_prefix) { continue; }
+
+    // Read the pairing data and check if the id matches
+    auto pair_data = _nvsmgr.read_blob(entry_info.key);
+    if(pair_data) {
+      memcpy(&pd, pair_data->data(), pair_data->size());
+      pairings.push_back(to_pairing(pd));
+    }
+
+    nvs_iter = nvs_entry_next(nvs_iter);
+  }
+
+  return pairings;
+}
+
+uint32_t PairingManager::get_pairing_count() {
+  return get_all_pairings().size();
+}
+
+std::string PairingManager::get_next_pairing_key() {
+  string key = nvs_key_pairing_prefix;
+  key += to_string(get_pairing_index());
+  return key;
+}
+
+uint32_t PairingManager::get_pairing_index() {
+  uint32_t pair_index = 0;
+  auto nvs_pair_index = _nvsmgr.read_uint32(nvs_key_pair_index);
+  if(nvs_pair_index){ pair_index = nvs_pair_index.value(); }
+  return pair_index;
+}
+
+bool PairingManager::inc_pairing_index() {
+  auto index = _nvsmgr.read_uint32(nvs_key_pair_index);
+  if(!index) { return false; }
+  uint32_t p_index = index.value();
+
+  if(p_index < max_pairing_index) {
+    ++p_index;
+  } else {
+    p_index = 0;
+  }
+
+  return _nvsmgr.write_uint32(nvs_key_pair_index, p_index);
 }
 
 optional<string> PairingManager::find_pairing_key(const string& pairing_id) {
@@ -84,6 +147,10 @@ optional<string> PairingManager::find_pairing_key(const string& pairing_id) {
   while(nvs_iter != NULL) {
     PairData pd;
     nvs_entry_info(nvs_iter, &entry_info);
+
+    // Check that the key has the pairing prefix
+    auto key_prefix = string(entry_info.key, nvs_key_pairing_prefix.size());
+    if(key_prefix != nvs_key_pairing_prefix) { continue; }
 
     // Read the pairing data and check if the id matches
     auto pair_data = _nvsmgr.read_blob(entry_info.key);

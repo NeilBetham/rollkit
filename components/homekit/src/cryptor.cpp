@@ -3,15 +3,25 @@
 #include <esp_log.h>
 #include <sodium.h>
 
+using namespace std;
 
-Cryptor::Cryptor(const std::string& key, const std::string& nonce) : _key(key) {
+
+Cryptor::Cryptor(const string& key, const string& nonce) : _key(key) {
   pad_and_set_nonce(nonce);
 }
 
 
-std::string Cryptor::encrypt(const std::string& plain_text) {
-  std::string cypher_text(
-    plain_text.size() + crypto_aead_chacha20poly1305_IETF_ABYTES,
+string Cryptor::encrypt(const string& plain_text) {
+  return encrypt(plain_text, {});
+}
+
+optional<string> Cryptor::decrypt(const string& cypher_text) {
+  return decrypt(cypher_text, false);
+}
+
+string Cryptor::encrypt(const string& plain_text, const string& add_data) {
+  string cypher_text(
+    add_data.size() + plain_text.size() + crypto_aead_chacha20poly1305_IETF_ABYTES,
     0
   );
   uint64_t cypher_text_length = 0;
@@ -22,12 +32,15 @@ std::string Cryptor::encrypt(const std::string& plain_text) {
     &cypher_text_length,
     (uint8_t*)plain_text.data(),
     plain_text.size(),
-    NULL,
-    0,
+    (uint8_t*)add_data.data(),
+    add_data.size(),
     NULL,
     (uint8_t*)_nonce.data(),
     (uint8_t*)_key.data()
   );
+
+  // Add the additional data to the cypher text
+  cypher_text = add_data + cypher_text;
 
   // Resize the cypher text
   cypher_text.resize(cypher_text_length);
@@ -35,19 +48,22 @@ std::string Cryptor::encrypt(const std::string& plain_text) {
   return cypher_text;
 }
 
-optional<std::string> Cryptor::decrypt(const std::string& cypher_text) {
-  std::string plain_text(cypher_text.size(), 0);
-  uint64_t plain_text_length = 0;
+optional<string> Cryptor::decrypt(const string& cypher_text, bool with_aad) {
+  uint8_t aad_bytes = with_aad ? 2 : 0;
+  string add_data(cypher_text.data(), aad_bytes);
+  string encrypted_text(cypher_text.data() + aad_bytes, cypher_text.size() - aad_bytes);
+  string plain_text(cypher_text.size(), 0);
 
   // Auth and decrypt the cypher text
+  uint64_t plain_text_length = 0;
   int res = crypto_aead_chacha20poly1305_ietf_decrypt(
     (uint8_t*)&plain_text[0],
     &plain_text_length,
     NULL,
-    (uint8_t*)cypher_text.data(),
-    cypher_text.size(),
-    NULL,
-    0,
+    (uint8_t*)encrypted_text.data(),
+    encrypted_text.size(),
+    (uint8_t*)add_data.data(),
+    add_data.size(),
     (uint8_t*)_nonce.data(),
     (uint8_t*)_key.data()
   );
@@ -60,14 +76,14 @@ optional<std::string> Cryptor::decrypt(const std::string& cypher_text) {
   // Resize the plain text message
   plain_text.resize(plain_text_length);
 
-  return plain_text;
+  return {plain_text};
 }
 
-void Cryptor::set_nonce(const std::string& nonce) {
+void Cryptor::set_nonce(const string& nonce) {
   pad_and_set_nonce(nonce);
 }
 
-void Cryptor::pad_and_set_nonce(const std::string& nonce) {
+void Cryptor::pad_and_set_nonce(const string& nonce) {
   _nonce = nonce;
 
   // Pad the nonce to 96 bits

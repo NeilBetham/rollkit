@@ -12,7 +12,7 @@ public:
   virtual void close() = 0;
   virtual bool is_closed() = 0;
   virtual void* get_identifier() = 0;
-  virtual void setup_security(const std::string& shared_secret) = 0;
+  virtual void setup_security(const std::string& shared_secret, bool is_admin) = 0;
 };
 
 

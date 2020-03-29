@@ -19,15 +19,30 @@ void Session::handle_request(string& data){
 
 void Session::handle_message(string& data){
   ESP_LOGD("session", "Handling message of %u bytes...", data.size());
+  string local_data = data;
+
+  // If session is verified try to decrypt
+  if(_is_pair_verified) {
+    ESP_LOGD("session", "Decrypting message");
+    auto plain_message = _session_sec.decrypt(data);
+    if(!plain_message) {
+      ESP_LOGE("session", "Decryption failed; closing connection");
+      close();
+      return;
+    }
+
+    local_data = *plain_message;
+  }
+
   // Parse the http data
   struct http_message message;
-  int result = mg_parse_http(data.c_str(), data.size(), &message, 1);
+  int result = mg_parse_http(local_data.c_str(), local_data.size(), &message, 1);
   if(result < 1){
     // There was an error parsing the message so return
     // TODO: Add error handling
 
     ESP_LOGD("session", "Error parsing http message: %i", result);
-    ESP_LOGD("session", "Errored Request: %u - `%s`", data.size(), to_hex(data).c_str());
+    ESP_LOGD("session", "Errored Request: %u - `%s`", local_data.size(), to_hex(local_data).c_str());
     return;
   }
 
@@ -61,7 +76,7 @@ void Session::send(int code, const string& data, const string& content_type){
   ESP_LOGD("session", "Sending %u bytes", data.size());
 }
 
-void Session::setup_security(const string& shared_secret) {
+void Session::setup_security(const string& shared_secret, bool is_admin) {
   _acc_to_cont_key = hkdf_sha512(
     shared_secret,
     "Control-Salt",
@@ -77,4 +92,6 @@ void Session::setup_security(const string& shared_secret) {
   );
 
   _is_pair_verified = true;
+  _is_admin = is_admin;
+  _session_sec = SessionSecurity(_acc_to_cont_key, _cont_to_acc_key);
 }
