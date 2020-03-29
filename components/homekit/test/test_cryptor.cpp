@@ -16,3 +16,14 @@ TEST_CASE("Test Encrypt Followed By Decrypt", "[pass]") {
   TEST_ASSERT(plain_text.has_value() != false);
   TEST_ASSERT(*plain_text == message);
 }
+
+TEST_CASE("Test AAD Encrypt Followed By Decrypt", "[pass]") {
+  Cryptor cryptor(test_key, test_nonce);
+  string message = "Hello World!";
+  uint16_t message_size = message.size();
+  string aad((char*)&message_size, 2);
+  auto cypher_text = cryptor.encrypt(message, aad);
+  auto plain_text = cryptor.decrypt(cypher_text, aad);
+  TEST_ASSERT(plain_text.has_value() != false);
+  TEST_ASSERT(*plain_text == message);
+}

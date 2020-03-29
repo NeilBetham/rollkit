@@ -12,10 +12,10 @@ public:
   Cryptor(const std::string& key, const std::string& nonce);
 
   std::string encrypt(const std::string& plain_text);
-  std::string encrypt(const std::string& plain_text, const std::string& add_data);
+  std::string encrypt(const std::string& plain_text, const std::string& aad);
 
   optional<std::string> decrypt(const std::string& cypher_text);
-  optional<std::string> decrypt(const std::string& cypher_text, bool with_aad);
+  optional<std::string> decrypt(const std::string& cypher_text, const std::string& aad);
 
   void set_nonce(const std::string& nonce);
 

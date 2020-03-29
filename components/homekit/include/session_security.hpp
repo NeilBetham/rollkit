@@ -21,8 +21,8 @@ private:
   Cryptor _send_cryptor;
   Cryptor _recv_cryptor;
 
-  uint64_t _recv_count = 1;
-  uint64_t _send_count = 1;
+  uint64_t _recv_count = 0;
+  uint64_t _send_count = 0;
 };
 
 

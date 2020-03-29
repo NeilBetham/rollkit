@@ -23,6 +23,7 @@ void SessionManager::handle_mg_event(struct mg_connection* nc, int event, void *
   switch(event){
     // New connection
     case MG_EV_ACCEPT: {
+      ESP_LOGD("session-manager", "MG Event Accept");
       sessions.emplace(std::piecewise_construct, std::make_tuple(nc), std::make_tuple(_session_delegate, nc));
       break;
     }
@@ -30,6 +31,7 @@ void SessionManager::handle_mg_event(struct mg_connection* nc, int event, void *
     // New data on existing connection
     case MG_EV_RECV: {
       int recevied_bytes = nc->recv_mbuf.len;
+      ESP_LOGD("session-manager", "MG Event Recv Bytes Len: %d, Con: %p", recevied_bytes, nc);
 
       // Allocate a string to fit the recevied data
       string message;
@@ -48,6 +50,7 @@ void SessionManager::handle_mg_event(struct mg_connection* nc, int event, void *
 
     // Existing connection closed
     case MG_EV_CLOSE: {
+      ESP_LOGD("session-manager", "MG Event Close");
       if(sessions.find(nc) != sessions.end()){
         // If the session exists close it
         sessions[nc].close();

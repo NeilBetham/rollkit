@@ -12,7 +12,9 @@ const string nvs_key_pair_index = "p.count";
 const string nvs_key_pairing_prefix = "p";
 
 const size_t max_esp_nvs_key_length = 15;
-const uint64_t max_pairing_index = stoi(string((max_esp_nvs_key_length - 1) - nvs_key_pairing_prefix.size(), 9));
+const string max_int_string((max_esp_nvs_key_length - 1) - nvs_key_pairing_prefix.size(), 9);
+const char*  max_int_c_string = max_int_string.c_str();
+const uint64_t max_pairing_index = atoll(max_int_c_string);
 
 const size_t pairing_id_bytes = 36;
 const size_t public_key_bytes = crypto_sign_PUBLICKEYBYTES;
@@ -127,9 +129,7 @@ uint32_t PairingManager::get_pairing_index() {
 }
 
 bool PairingManager::inc_pairing_index() {
-  auto index = _nvsmgr.read_uint32(nvs_key_pair_index);
-  if(!index) { return false; }
-  uint32_t p_index = index.value();
+  uint32_t p_index = get_pairing_index();
 
   if(p_index < max_pairing_index) {
     ++p_index;
@@ -147,6 +147,7 @@ optional<string> PairingManager::find_pairing_key(const string& pairing_id) {
   while(nvs_iter != NULL) {
     PairData pd;
     nvs_entry_info(nvs_iter, &entry_info);
+    nvs_iter = nvs_entry_next(nvs_iter);
 
     // Check that the key has the pairing prefix
     auto key_prefix = string(entry_info.key, nvs_key_pairing_prefix.size());
@@ -161,7 +162,6 @@ optional<string> PairingManager::find_pairing_key(const string& pairing_id) {
       if(string(pd.id, pairing_id_bytes) == pairing_id) { return {entry_info.key}; }
     }
 
-    nvs_iter = nvs_entry_next(nvs_iter);
   }
 
   return {};

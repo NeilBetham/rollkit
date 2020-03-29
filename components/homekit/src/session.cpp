@@ -10,7 +10,18 @@ using namespace std;
 
 void Session::handle_request(string& data){
   if(_is_pair_verified == true){
-    // Handle decryption
+    ESP_LOGD("session", "Decrypting message");
+    ESP_LOGD("session", "Encrypted message length: %i", ((uint16_t)data[1] << 8 | (uint16_t)data[0]));
+    ESP_LOGD("session", "Total message length: %i", data.size());
+
+    auto plain_message = _session_sec.decrypt(data);
+    if(!plain_message) {
+      ESP_LOGE("session", "Decryption failed closing connection");
+      close();
+      return;
+    }
+
+    handle_message(*plain_message);
   } else {
     // Handle regular message
     handle_message(data);
@@ -19,30 +30,16 @@ void Session::handle_request(string& data){
 
 void Session::handle_message(string& data){
   ESP_LOGD("session", "Handling message of %u bytes...", data.size());
-  string local_data = data;
-
-  // If session is verified try to decrypt
-  if(_is_pair_verified) {
-    ESP_LOGD("session", "Decrypting message");
-    auto plain_message = _session_sec.decrypt(data);
-    if(!plain_message) {
-      ESP_LOGE("session", "Decryption failed; closing connection");
-      close();
-      return;
-    }
-
-    local_data = *plain_message;
-  }
 
   // Parse the http data
   struct http_message message;
-  int result = mg_parse_http(local_data.c_str(), local_data.size(), &message, 1);
+  int result = mg_parse_http(data.c_str(), data.size(), &message, 1);
   if(result < 1){
     // There was an error parsing the message so return
     // TODO: Add error handling
 
     ESP_LOGD("session", "Error parsing http message: %i", result);
-    ESP_LOGD("session", "Errored Request: %u - `%s`", local_data.size(), to_hex(local_data).c_str());
+    ESP_LOGD("session", "Errored Request: %u - `%s`", data.size(), to_hex(data).c_str());
     return;
   }
 
@@ -90,6 +87,9 @@ void Session::setup_security(const string& shared_secret, bool is_admin) {
     "Control-Write-Encryption-Key",
     32
   );
+
+  ESP_LOGD("session", "C 2 A Key: %s", to_hex(_cont_to_acc_key).c_str());
+  ESP_LOGD("session", "A 2 C Key: %s", to_hex(_acc_to_cont_key).c_str());
 
   _is_pair_verified = true;
   _is_admin = is_admin;
