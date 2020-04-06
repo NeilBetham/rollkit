@@ -1,0 +1,9 @@
+#ifndef ROUTES_CHARACTERISTICS_HPP
+#define ROUTES_CHARACTERISTICS_HPP
+
+#include "i_route.hpp"
+
+
+
+
+#endif // ROUTES_CHARACTERISTICS_HPP

@@ -16,7 +16,7 @@ using namespace std;
 namespace routes {
 
 
-void PairSetup::handle_request(Request& request) {
+void PairSetup::handle_request(Request& request, std::list<Accessory>& accessories) {
   auto req_tlvs = TLV::decode(request.get_body());
   auto state_tlv = req_tlvs.find(HAP_TLV_TYPE_STATE);
   if(state_tlv) {

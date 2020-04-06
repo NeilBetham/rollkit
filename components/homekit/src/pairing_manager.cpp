@@ -12,7 +12,7 @@ const string nvs_key_pair_index = "p.count";
 const string nvs_key_pairing_prefix = "p";
 
 const size_t max_esp_nvs_key_length = 15;
-const string max_int_string((max_esp_nvs_key_length - 1) - nvs_key_pairing_prefix.size(), 9);
+const string max_int_string((max_esp_nvs_key_length - 1) - nvs_key_pairing_prefix.size(), '9');
 const char*  max_int_c_string = max_int_string.c_str();
 const uint64_t max_pairing_index = atoll(max_int_c_string);
 
@@ -130,6 +130,8 @@ uint32_t PairingManager::get_pairing_index() {
 
 bool PairingManager::inc_pairing_index() {
   uint32_t p_index = get_pairing_index();
+
+  ESP_LOGD("pair-mgr", "Max Pairing Index Count: %llu", max_pairing_index);
 
   if(p_index < max_pairing_index) {
     ++p_index;

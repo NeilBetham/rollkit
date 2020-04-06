@@ -28,7 +28,7 @@ struct VerifyState {
 
 class PairVerify : public IRoute {
 public:
-  void handle_request(Request& request);
+  void handle_request(Request& request, std::list<Accessory>& accessories);
 
 private:
   void handle_m1(Request& request, TLVs& tlvs, VerifyState& state);

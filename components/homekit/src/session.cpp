@@ -68,9 +68,16 @@ void Session::send(int code, const string& data, const string& content_type){
   string header(buf_size, 0);
   (void)sprintf(&(header[0]), header_fmt.c_str(), code, mg_status_message(code), data.size(), content_type.c_str());
 
-  mg_send(_connection, header.c_str(), header.size());
-  mg_send(_connection, data.c_str(), data.size());
-  ESP_LOGD("session", "Sending %u bytes", data.size());
+  string response;
+  if(_is_pair_verified) {
+    string plain_text = header + data;
+    response = _session_sec.encrypt(plain_text);
+  } else {
+    response = header + data;
+  }
+
+  mg_send(_connection, response.c_str(), response.size());
+  ESP_LOGD("session", "Sending %u bytes", response.size());
 }
 
 void Session::setup_security(const string& shared_secret, bool is_admin) {
@@ -87,9 +94,6 @@ void Session::setup_security(const string& shared_secret, bool is_admin) {
     "Control-Write-Encryption-Key",
     32
   );
-
-  ESP_LOGD("session", "C 2 A Key: %s", to_hex(_cont_to_acc_key).c_str());
-  ESP_LOGD("session", "A 2 C Key: %s", to_hex(_acc_to_cont_key).c_str());
 
   _is_pair_verified = true;
   _is_admin = is_admin;

@@ -17,17 +17,40 @@
 #include "mongoose.h"
 #include "sdkconfig.h"
 
-#include "mdns.hpp"
 #include "app.hpp"
+
+using namespace std;
 
 static char l_tag []="http";
 App app;
+Accessory acc;
+Service acc_switch;
+Characteristic acc_switch_char;
 
 // Pass HTTP requests off to App code
 void mongoose_event_handler(struct mg_connection *nc, int event, void *event_data) {
   app.handle_mg_event(nc, event, event_data);
 }
 
+void init_app() {
+  app.init(ACC_NAME, ACC_MODEL, ACC_MANUFACTURER, ACC_FIRMWARE_REVISION);
+
+  acc_switch_char = Characteristic(
+    APPL_CHAR_UUID_ON,
+    [](string v){ ESP_LOGD("acc", "Write: %s", v.c_str()); },
+    []{ ESP_LOGD("acc", "Read"); return "false"; },
+    "bool",
+    {"pr", "pw"}
+  );
+  acc_switch = Service(
+    APPL_SRVC_UUID_SWITCH,
+    false,
+    true
+  );
+  acc_switch.register_characteristic(acc_switch_char);
+  acc.register_service(acc_switch);
+  app.register_accessory(acc);
+}
 
 // FreeRTOS task to start Mongoose.
 void mg_task(void* data) {
@@ -61,8 +84,8 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
     ESP_LOGI(l_tag, "Connected: IP: " IPSTR, IP2STR(&event->ip_info.ip));
+    init_app();
     xTaskCreatePinnedToCore(&mg_task, "mg_task", 20000, NULL, 5, NULL,0);
-    config_mdns();
   }
 }
 

@@ -1,5 +1,7 @@
 #include "utils.hpp"
 
+#include <stdio.h>
+
 #include "esp_log.h"
 
 using namespace std;
@@ -59,4 +61,13 @@ string to_bin(const string& hex) {
   }
 
   return output;
+}
+
+string hap_uuid_prefix(uint32_t value) {
+  // Serialize Type ID
+  string type(8, 0); // 32 Bit Hex
+  int printed = snprintf(&type[0], type.size(), "%X", value);
+  type.resize(printed);
+
+  return type;
 }

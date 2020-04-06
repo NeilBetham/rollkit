@@ -2,7 +2,6 @@
 #include <esp_log.h>
 #include <string.h>
 
-#include "config.hpp"
 #include "host_info.hpp"
 
 static char mdns_l_tag[] = "mdns";
@@ -14,12 +13,11 @@ static const char* config_number_value = "2";
 static const char* feature_flags_key = "ff";
 static const char* feature_flags_value = "0";
 
-
 static const char* device_id_key = "id";
 static const char* device_id_value = "00:00:00:00:00:00";
 
 static const char* model_name_key = "md";
-static const char* model_name_value = ACC_MODEL;
+static const char* model_name_value = "";
 
 static const char* proto_ver_key = "pv";
 static const char* proto_ver_value = "1.0";
@@ -46,7 +44,7 @@ static mdns_txt_item_t hap_txt_data[8] = {
 };
 
 
-void config_mdns(){
+void config_mdns(std::string accessory_name, std::string accessory_model){
   esp_err_t err = mdns_init();
   if (err) {
       printf("MDNS Init failed: %d\n", err);
@@ -58,8 +56,13 @@ void config_mdns(){
   auto dc = strcpy(mac_addr, get_mac_address().c_str());
   hap_txt_data[2].value = mac_addr;
 
-  ESP_ERROR_CHECK(mdns_hostname_set(ACC_NAME));
-  ESP_ERROR_CHECK(mdns_service_add(ACC_NAME, "_hap", "_tcp", 80, hap_txt_data, 8));
+  // Set model name
+  char* model_addr = (char*)malloc(sizeof(char) * accessory_model.size());
+  dc = strcpy(model_addr, accessory_model.c_str());
+  hap_txt_data[3].value = model_addr;
+
+  ESP_ERROR_CHECK(mdns_hostname_set(accessory_name.c_str()));
+  ESP_ERROR_CHECK(mdns_service_add(accessory_name.c_str(), "_hap", "_tcp", 80, hap_txt_data, 8));
 
   ESP_LOGD(mdns_l_tag, "MDNS Config Complete");
 }
