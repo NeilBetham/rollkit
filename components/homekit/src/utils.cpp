@@ -22,6 +22,15 @@ uint8_t hex_c_to_bin_c(char hex) {
   return bin;
 }
 
+tuple<string, string> parse_query_kv(string kv_s) {
+  size_t equal_pos = kv_s.find("=");
+  if(equal_pos == npos) { return {{}, {}}; }
+  string key = kv_s.substr(0, equal_pos);
+  string value = kv_s.substr(equal_pos + 1, kv_s.size() - (equal_pos + 1));
+  ESP_LOGD("utils", "Key: %s Value: %s", key.c_str(), value.c_str());
+  return {key, value};
+}
+
 } // namespace
 
 string to_hex(const string& bin) {
@@ -48,7 +57,7 @@ string to_hex(const string& bin) {
 }
 
 string to_bin(const string& hex) {
-  std::string output;
+  string output;
   bool high_nibble = true;
   for(auto& ch : hex) {
     auto bin_c = internal::hex_c_to_bin_c(ch);
@@ -70,4 +79,30 @@ string hap_uuid_prefix(uint32_t value) {
   type.resize(printed);
 
   return type;
+}
+
+list<tuple<string, string>> parse_query_string(string qs) {
+  size_t start_pos = 0;
+  size_t current_pos = qs.find("&");
+  list<tuple<string, string>> ret;
+
+  while(current_pos != npos) {
+    ret.push_back(parse_query_kv(qs.substr(start_pos, current_pos - start_pos)));
+    start_pos = current_pos + 1;
+    current_pos = find("&", start_pos);
+  }
+
+  return ret;
+}
+
+list<tuple<uint64_t, uint64_t>> parse_id_list(string id_list) {
+  list<uint64_t> ret;
+  size_t start_pos = 0;
+  size_t current_pos = qs.find(",");
+
+  while(current_pos != npos) {
+    ret.push_back(parse_query_kv(qs.substr(start_pos, current_pos - start_pos)));
+    start_pos = current_pos + 1;
+    current_pos = find("&", start_pos);
+  }
 }
