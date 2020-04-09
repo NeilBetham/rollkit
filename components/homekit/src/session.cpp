@@ -1,5 +1,6 @@
 #include "session.hpp"
 
+#include <exception>
 #include <esp_log.h>
 
 #include "request.hpp"
@@ -9,22 +10,27 @@
 using namespace std;
 
 void Session::handle_request(string& data){
-  if(_is_pair_verified == true){
-    ESP_LOGD("session", "Decrypting message");
-    ESP_LOGD("session", "Encrypted message length: %i", ((uint16_t)data[1] << 8 | (uint16_t)data[0]));
-    ESP_LOGD("session", "Total message length: %i", data.size());
+  try {
+    if(_is_pair_verified == true){
+      ESP_LOGD("session", "Decrypting message");
+      ESP_LOGD("session", "Encrypted message length: %i", ((uint16_t)data[1] << 8 | (uint16_t)data[0]));
+      ESP_LOGD("session", "Total message length: %i", data.size());
 
-    auto plain_message = _session_sec.decrypt(data);
-    if(!plain_message) {
-      ESP_LOGE("session", "Decryption failed closing connection");
-      close();
-      return;
+      auto plain_message = _session_sec.decrypt(data);
+      if(!plain_message) {
+        ESP_LOGE("session", "Decryption failed closing connection");
+        close();
+        return;
+      }
+
+      handle_message(*plain_message);
+    } else {
+      // Handle regular message
+      handle_message(data);
     }
-
-    handle_message(*plain_message);
-  } else {
-    // Handle regular message
-    handle_message(data);
+  } catch(exception& e) {
+    ESP_LOGD("session", "Exception thrown while handling request: %s", e.what());
+    close();
   }
 }
 
@@ -44,7 +50,6 @@ void Session::handle_message(string& data){
   }
 
   Request new_request(message, *this);
-  ESP_LOGD("session", "Got Req With URI: %s", new_request.get_uri().c_str());
   if(_delegate){
     _delegate->request_recv(new_request);
   }

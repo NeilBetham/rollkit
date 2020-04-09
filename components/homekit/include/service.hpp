@@ -16,6 +16,9 @@ public:
     _hap_type(hap_uuid_prefix(hap_type)), _instance_id(get_id_manager().get_serv_char_id()),
     _hidden(hidden), _primary(primary) {};
 
+  uint64_t get_id() const { return _instance_id; };
+  const std::list<Characteristic>& get_characteristics() const { return _characteristics; };
+
   void register_characteristic(const Characteristic& characteristic) {
     _characteristics.push_back(characteristic);
   };

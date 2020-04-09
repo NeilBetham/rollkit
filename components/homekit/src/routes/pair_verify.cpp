@@ -17,7 +17,7 @@ using namespace std;
 
 namespace routes {
 
-void PairVerify::handle_request(Request& request, std::list<Accessory>& accessories) {
+void PairVerify::handle_request(Request& request, AccessoryDB& acc_db) {
   // Load the pair progress if any
   auto& verify_state = _verify_states[request.get_session().get_identifier()];
 

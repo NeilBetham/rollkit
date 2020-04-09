@@ -64,7 +64,7 @@ void App::init(std::string name, std::string model, std::string manu, std::strin
 
   // Serial
   accessory_info.register_characteristic({
-    APPL_CHAR_UUID_NAME,
+    APPL_CHAR_UUID_SERIAL_NUMBER,
     [](std::string s){},
     []{ return get_mac_address(); },
     "string",

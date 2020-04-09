@@ -5,6 +5,8 @@
 #include <vector>
 #include <tuple>
 
+#include "accessory_db.hpp"
+
 #include "i_session_delegate.hpp"
 #include "i_route.hpp"
 #include "request.hpp"
@@ -12,14 +14,14 @@
 
 class Router : public ISessionDelegate {
 public:
-  Router(std::list<Accessory>& accessories_ref) : _accessories(accessories_ref) {};
+  Router(AccessoryDB& acc_db) : _acc_db(acc_db) {};
   ~Router() {};
 
   virtual void register_route(std::string uri, IRoute* route);
   virtual void request_recv(Request& request);
 
 private:
-  std::list<Accessory>& _accessories;
+  AccessoryDB& _acc_db;
   std::vector<std::tuple<std::string, IRoute*> > routes;
 };
 

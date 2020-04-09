@@ -7,7 +7,7 @@ namespace routes {
 
 class Accessories : public IRoute {
 public:
-  void handle_request(Request& request, std::list<Accessory>& accessories);
+  void handle_request(Request& request, AccessoryDB& acc_db);
 };
 
 } // namespace routes

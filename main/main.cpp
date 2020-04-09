@@ -37,8 +37,8 @@ void init_app() {
 
   acc_switch_char = Characteristic(
     APPL_CHAR_UUID_ON,
-    [](string v){ ESP_LOGD("acc", "Write: %s", v.c_str()); },
-    []{ ESP_LOGD("acc", "Read"); return "false"; },
+    [](nlohmann::json v){ ESP_LOGD("acc", "Write: %d", v.get<int>()); },
+    []() -> nlohmann::json { ESP_LOGD("acc", "Read"); return false; },
     "bool",
     {"pr", "pw"}
   );

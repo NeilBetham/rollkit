@@ -1,7 +1,7 @@
 #ifndef INSTANCE_ID_MANAGER_HPP
 #define INSTANCE_ID_MANAGER_HPP
 
-namespace {
+#include <cstdint>
 
 class InstanceIDManager {
 public:
@@ -21,12 +21,7 @@ private:
   uint64_t _serv_char_id_index = 1;
 };
 
-} // namespace
 
-
-InstanceIDManager& get_id_manager() {
-  static InstanceIDManager id_mgr;
-  return id_mgr;
-}
+InstanceIDManager& get_id_manager();
 
 #endif // INSTANCE_ID_MANAGER_HPP

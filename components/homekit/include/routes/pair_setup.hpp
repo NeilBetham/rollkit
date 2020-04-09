@@ -28,7 +28,7 @@ public:
     _srp_verifier(_srp_math, _srp_user)
     {};
 
-  void handle_request(Request& request, std::list<Accessory>& accessories);
+  void handle_request(Request& request, AccessoryDB& acc_db);
 
 private:
   void handle_m1(Request& request, TLVs& tlvs);
