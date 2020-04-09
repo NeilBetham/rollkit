@@ -32,15 +32,17 @@ void mongoose_event_handler(struct mg_connection *nc, int event, void *event_dat
   app.handle_mg_event(nc, event, event_data);
 }
 
+bool value = false;
+
 void init_app() {
   app.init(ACC_NAME, ACC_MODEL, ACC_MANUFACTURER, ACC_FIRMWARE_REVISION);
 
   acc_switch_char = Characteristic(
     APPL_CHAR_UUID_ON,
-    [](nlohmann::json v){ ESP_LOGD("acc", "Write: %d", v.get<int>()); },
-    []() -> nlohmann::json { ESP_LOGD("acc", "Read"); return false; },
+    [](nlohmann::json v){ ESP_LOGD("acc", "Write: %d", v.get<int>()); value = (bool)v.get<int>(); },
+    []() -> nlohmann::json { ESP_LOGD("acc", "Read value: %d", value); return value; },
     "bool",
-    {"pr", "pw"}
+    {"pr", "pw", "ev"}
   );
   acc_switch = Service(
     APPL_SRVC_UUID_SWITCH,

@@ -93,6 +93,7 @@ std::list<Pairing> PairingManager::get_all_pairings() {
   while(nvs_iter != NULL) {
     PairData pd;
     nvs_entry_info(nvs_iter, &entry_info);
+    nvs_iter = nvs_entry_next(nvs_iter);
 
     // Check that the key has the pairing prefix
     auto key_prefix = string(entry_info.key, nvs_key_pairing_prefix.size());
@@ -104,8 +105,6 @@ std::list<Pairing> PairingManager::get_all_pairings() {
       memcpy(&pd, pair_data->data(), pair_data->size());
       pairings.push_back(to_pairing(pd));
     }
-
-    nvs_iter = nvs_entry_next(nvs_iter);
   }
 
   return pairings;
@@ -163,7 +162,6 @@ optional<string> PairingManager::find_pairing_key(const string& pairing_id) {
 
       if(string(pd.id, pairing_id_bytes) == pairing_id) { return {entry_info.key}; }
     }
-
   }
 
   return {};

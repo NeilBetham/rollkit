@@ -4,11 +4,10 @@
 
 #include "host_info.hpp"
 #include "hap_defs.hpp"
-#include "mdns.hpp"
 
 
 void App::init(std::string name, std::string model, std::string manu, std::string firmware_rev) {
-  config_mdns(name, model);
+  _mdns_mgr = MDNSManager(name, model);
 
   // Setup accessory info service
   Service accessory_info(
@@ -71,5 +70,21 @@ void App::init(std::string name, std::string model, std::string manu, std::strin
     {"pr"}
   });
 
+  Service protocol_info(
+    APPL_SRVC_UUID_PROTOCOL_INFO,
+    false,
+    false
+  );
+
+  // Protcol Version
+  protocol_info.register_characteristic({
+    APPL_CHAR_UUID_VERSION,
+    [](std::string s){},
+    []{ return "1.1.0"; },
+    "string",
+    {"pr"}
+  });
+
   _accessory_info = accessory_info;
+  _protocol_info = protocol_info;
 }
