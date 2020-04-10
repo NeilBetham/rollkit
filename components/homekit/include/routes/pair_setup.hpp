@@ -28,7 +28,7 @@ public:
     _srp_verifier(_srp_math, _srp_user)
     {};
 
-  void handle_request(Request& request, AccessoryDB& acc_db);
+  void handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr);
 
 private:
   void handle_m1(Request& request, TLVs& tlvs);

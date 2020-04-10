@@ -7,7 +7,7 @@ namespace routes {
 
 class Accessories : public IRoute {
 public:
-  void handle_request(Request& request, AccessoryDB& acc_db);
+  void handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr);
 };
 
 } // namespace routes

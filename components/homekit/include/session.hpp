@@ -1,6 +1,7 @@
 #ifndef SESSION_HPP
 #define SESSION_HPP
 
+#include <list>
 #include <string>
 
 #include "cryptor.hpp"
@@ -22,12 +23,15 @@ public:
 
   void head(int code);
   void send(int code, const std::string& message, const std::string& content_type);
+  void event(const std::string& message);
   void close();
   bool is_closed();
   void* get_identifier() { return (void*)_connection; };
   void setup_security(const std::string& shared_secret, bool is_admin);
+  void register_event_listener(ISessionEventDelegate* _listener) { _event_listeners.push_back(_listener); };
 
 private:
+  void send_data(std::string to_send);
   void handle_message(std::string& data);
 
   SessionSecurity _session_sec;
@@ -37,6 +41,7 @@ private:
   std::string _acc_to_cont_key;
   std::string _cont_to_acc_key;
   struct mg_connection* _connection;
+  std::list<ISessionEventDelegate*> _event_listeners;
 };
 
 #endif // SESSION_HPP

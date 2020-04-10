@@ -9,11 +9,11 @@ namespace routes {
 
 class Characteristics : public IRoute {
 public:
-  void handle_request(Request& request, AccessoryDB& acc_db);
+  void handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr);
 
 private:
   void handle_get(Request& request, AccessoryDB& acc_db);
-  void handle_put(Request& request, AccessoryDB& acc_db);
+  void handle_put(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr);
 };
 
 } // namespace routes

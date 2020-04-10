@@ -17,11 +17,12 @@
 #include "session_manager.hpp"
 #include "accessory_db.hpp"
 #include "mdns.hpp"
+#include "event_manager.hpp"
 
 
 class App {
 public:
-  App() : _router(_accessory_db), _session_manager(&_router) {
+  App() : _event_mgr(_accessory_db), _router(_accessory_db, _event_mgr), _session_manager(&_router) {
     _router.register_route("/pair-setup", &_ps_route);
     _router.register_route("/pair-verify", &_pv_route);
     _router.register_route("/accessories", &_accs_route);
@@ -42,6 +43,7 @@ public:
 
 private:
   AccessoryDB _accessory_db;
+  EventManager _event_mgr;
   Service _accessory_info;
   Service _protocol_info;
   routes::PairSetup _ps_route;

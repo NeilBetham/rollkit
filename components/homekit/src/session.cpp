@@ -57,6 +57,9 @@ void Session::handle_message(string& data){
 
 void Session::close(){
   _connection->flags |= MG_F_CLOSE_IMMEDIATELY;
+  for(auto& listener : _event_listeners) {
+    listener->session_closed(get_identifier());
+  }
 }
 
 bool Session::is_closed(){
@@ -64,7 +67,12 @@ bool Session::is_closed(){
 }
 
 void Session::head(int code){
-  mg_send_head(_connection, code, 0, "Content-Type: text/plain");
+  string header_fmt = "HTTP/1.1 %d %s\r\n\r\n";
+  int buf_size = snprintf(NULL, 0, header_fmt.c_str(), code, mg_status_message(code));
+  string header(buf_size, 0);
+  (void)sprintf(&(header[0]), header_fmt.c_str(), code, mg_status_message(code));
+
+  send_data(header);
 }
 
 void Session::send(int code, const string& data, const string& content_type){
@@ -73,12 +81,25 @@ void Session::send(int code, const string& data, const string& content_type){
   string header(buf_size, 0);
   (void)sprintf(&(header[0]), header_fmt.c_str(), code, mg_status_message(code), data.size(), content_type.c_str());
 
+  send_data(header + data);
+}
+
+void Session::event(const std::string& data) {
+  int code = 200;
+  string header_fmt = "EVENT/1.0 %d %s\r\nContent-Length: %d\r\nContent-Type: application/hap+json\r\n\r\n";
+  int buf_size = snprintf(NULL, 0, header_fmt.c_str(), code, mg_status_message(code), data.size());
+  string header(buf_size, 0);
+  (void)sprintf(&(header[0]), header_fmt.c_str(), code, mg_status_message(code), data.size());
+
+  send_data(header + data);
+}
+
+void Session::send_data(string to_send) {
   string response;
   if(_is_pair_verified) {
-    string plain_text = header + data;
-    response = _session_sec.encrypt(plain_text);
+    response = _session_sec.encrypt(to_send);
   } else {
-    response = header + data;
+    response = to_send;
   }
 
   mg_send(_connection, response.c_str(), response.size());

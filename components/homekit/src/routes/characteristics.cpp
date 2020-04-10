@@ -9,19 +9,18 @@ using namespace std;
 
 namespace routes {
 
-void Characteristics::handle_request(Request& request, AccessoryDB& acc_db) {
+void Characteristics::handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr) {
   if(request.get_method() == "GET") {
     handle_get(request, acc_db);
   } else if(request.get_method() == "PUT") {
-    handle_put(request, acc_db);
+    handle_put(request, acc_db, ev_mgr);
   }
 };
 
 void Characteristics::handle_get(Request& request, AccessoryDB& acc_db) {
   auto query_info = parse_query_string(request.get_query_string());
   auto id_list = parse_id_list(query_info["id"]);
-
-  list<Characteristic> selected_chars;
+  nlohmann::json resp;
 
   for(auto& id : id_list) {
     uint64_t acc_id;
@@ -30,17 +29,13 @@ void Characteristics::handle_get(Request& request, AccessoryDB& acc_db) {
 
     auto char_opt = acc_db.find_char(acc_id, char_id);
     if(char_opt) {
-      selected_chars.push_back(*char_opt);
+      resp["characteristics"].push_back({
+        {"aid", acc_id},
+        {"iid", char_id},
+        {"value", char_opt->handle_read()}
+      });
     }
   }
-
-  // Build json response
-  list<nlohmann::json> char_json;
-  for(auto& characteristic : selected_chars) {
-    char_json.push_back(characteristic.serialize());
-  }
-  nlohmann::json resp;
-  resp["characteristics"] = char_json;
 
   // send it
   auto body = resp.dump();
@@ -49,7 +44,7 @@ void Characteristics::handle_get(Request& request, AccessoryDB& acc_db) {
   request.get_session().send(200, body, "application/hap+json");
 };
 
-void Characteristics::handle_put(Request& request, AccessoryDB& acc_db) {
+void Characteristics::handle_put(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr) {
   nlohmann::json char_write_req = nlohmann::json::parse(request.get_body());
 
   auto char_write_reqs = char_write_req["characteristics"];
@@ -58,12 +53,27 @@ void Characteristics::handle_put(Request& request, AccessoryDB& acc_db) {
   for(auto& req : char_write_reqs) {
     uint64_t acc_id = req["aid"];
     uint64_t char_id = req["iid"];
-    auto value = req["value"];
+    if(req.contains("ev")) {
+      // Handle event sub request
+      if(req["ev"] == true) {
+        ESP_LOGD("rt-chars", "Event Request: %s", request.get_body().c_str());
+        ESP_LOGD("rt-chars", "Controller Registering For Events");
+        ev_mgr.register_for_events(&request.get_session(), char_id);
+        request.get_session().register_event_listener(&ev_mgr);
+      } else {
+        ESP_LOGD("rt-chars", "Controller Unregistering For Events");
+        ev_mgr.unregister_for_events(&request.get_session(), char_id);
+      }
+    } else {
+      // Handle char put request
+      auto value = req["value"];
 
-    auto char_opt = acc_db.find_char(acc_id, char_id);
-    if(!char_opt) { continue; }
+      auto char_opt = acc_db.find_char(acc_id, char_id);
+      if(!char_opt) { continue; }
 
-    char_opt->handle_update(value);
+      char_opt->handle_update(value);
+      ev_mgr.characteristic_updated(acc_id, char_id);
+    }
   }
 
   request.get_session().head(204);

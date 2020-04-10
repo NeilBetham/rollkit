@@ -6,7 +6,7 @@
 #include <tuple>
 
 #include "accessory_db.hpp"
-
+#include "event_manager.hpp"
 #include "i_session_delegate.hpp"
 #include "i_route.hpp"
 #include "request.hpp"
@@ -14,7 +14,7 @@
 
 class Router : public ISessionDelegate {
 public:
-  Router(AccessoryDB& acc_db) : _acc_db(acc_db) {};
+  Router(AccessoryDB& acc_db, EventManager& ev_mgr) : _acc_db(acc_db), _ev_mgr(ev_mgr) {};
   ~Router() {};
 
   virtual void register_route(std::string uri, IRoute* route);
@@ -22,6 +22,7 @@ public:
 
 private:
   AccessoryDB& _acc_db;
+  EventManager& _ev_mgr;
   std::vector<std::tuple<std::string, IRoute*> > routes;
 };
 
