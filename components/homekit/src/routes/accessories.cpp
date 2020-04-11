@@ -15,6 +15,7 @@ void Accessories::handle_request(Request& request, AccessoryDB& acc_db, EventMan
   message["accessories"] = accessories_json;
 
   auto body = message.dump();
+  ESP_LOGD("rt-accs", "AccessoryDB: %s", body.c_str());
   request.get_session().send(200, body, "application/hap+json");
 }
 

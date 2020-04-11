@@ -17,7 +17,7 @@ static const char* cat_id_key = "ci";
 static const char* config_number_value = "2";
 static const char* proto_ver_value = "1.1";
 static const char* state_number_value = "1";
-static const char* cat_id_value = "1";
+static const char* cat_id_value = "5";
 
 
 MDNSManager::MDNSManager(std::string acc_name, std::string acc_model) : _acc_name(acc_name), _acc_model(acc_model) {

@@ -6,6 +6,9 @@
 #include <unordered_map>
 
 #include <esp_log.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/event_groups.h>
 
 #include "mongoose.h"
 #include "router.hpp"
@@ -31,6 +34,8 @@ public:
   };
 
   void init(std::string name, std::string model, std::string manu, std::string firmware_rev);
+  void start();
+  void stop();
   void register_accessory(const Accessory& acc) {
     Accessory copy_acc = Accessory(acc);
     copy_acc.register_service(_accessory_info);
@@ -40,6 +45,8 @@ public:
   void handle_mg_event(struct mg_connection *nc, int event, void *event_data) {
     _session_manager.handle_mg_event(nc, event, event_data);
   }
+
+  void run();
 
 private:
   AccessoryDB _accessory_db;
@@ -55,6 +62,10 @@ private:
   Router _router;
   SessionManager _session_manager;
   MDNSManager _mdns_mgr;
+
+  // FreeRTOS State to manage task execution
+  struct mg_mgr _mg_mgr;
+  TaskHandle_t _main_task;
 };
 
 #endif // APP_HPP

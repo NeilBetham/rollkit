@@ -21,4 +21,6 @@ void Router::request_recv(Request& request) {
       get<1>(route_tuple)->handle_request(request, _acc_db, _ev_mgr);
     }
   }
+
+  _ev_mgr.flush();
 }

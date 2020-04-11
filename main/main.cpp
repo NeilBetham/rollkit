@@ -1,46 +1,48 @@
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
-
 #include <esp_event.h>
 #include <esp_log.h>
 #include <esp_system.h>
 #include <esp_wifi.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <freertos/event_groups.h>
 #include <nvs_flash.h>
 #include <sodium.h>
 #include <lwip/err.h>
 #include <lwip/sys.h>
 
-#include "config.hpp"
-
-#include "mongoose.h"
 #include "sdkconfig.h"
 
 #include "app.hpp"
+#include "config.hpp"
 
 using namespace std;
 
-static char l_tag []="http";
 App app;
 Accessory acc;
 Service acc_switch;
 Characteristic acc_switch_char;
 
-// Pass HTTP requests off to App code
-void mongoose_event_handler(struct mg_connection *nc, int event, void *event_data) {
-  app.handle_mg_event(nc, event, event_data);
-}
+Service acc_color_fade;
+Characteristic acc_color_fade_on_char;
+Characteristic acc_color_fade_name_char;
 
-bool value = false;
+Service acc_light;
+Characteristic acc_light_on_char;
+Characteristic acc_light_brightness_char;
+Characteristic acc_light_hue_char;
+Characteristic acc_light_sat_char;
+
+bool switch_on = false;
+bool light_on = false;
+int light_brightness = 0.0;
+float light_hue = 0.0;
+float light_sat = 0.0;
+
 
 void init_app() {
   app.init(ACC_NAME, ACC_MODEL, ACC_MANUFACTURER, ACC_FIRMWARE_REVISION);
 
   acc_switch_char = Characteristic(
     APPL_CHAR_UUID_ON,
-    [](nlohmann::json v){ ESP_LOGD("acc", "Write: %d", v.get<int>()); value = (bool)v.get<int>(); },
-    []() -> nlohmann::json { ESP_LOGD("acc", "Read value: %d", value); return value; },
+    [](nlohmann::json v){ ESP_LOGD("acc", "Switch On Write: %d", v.get<int>()); switch_on = (bool)v.get<int>(); },
+    []() -> nlohmann::json { ESP_LOGD("acc", "Switch On Read: %d", switch_on); return switch_on; },
     "bool",
     {"pr", "pw", "ev"}
   );
@@ -51,29 +53,50 @@ void init_app() {
   );
   acc_switch.register_characteristic(acc_switch_char);
   acc.register_service(acc_switch);
+
+  acc_light_on_char = Characteristic(
+    APPL_CHAR_UUID_ON,
+    [](nlohmann::json v){ ESP_LOGD("acc", "Light On Write: %d", v.get<int>()); light_on = (bool)v.get<int>(); },
+    []() -> nlohmann::json { ESP_LOGD("acc", "Light On Read value: %d", light_on); return light_on; },
+    "bool",
+    {"pr", "pw", "ev"}
+  );
+  acc_light_brightness_char = Characteristic(
+    APPL_CHAR_UUID_BRIGHTNESS,
+    [](nlohmann::json v){ ESP_LOGD("acc", "Light Brightness Write: %d", v.get<int>()); light_brightness = v.get<int>(); },
+    []() -> nlohmann::json { ESP_LOGD("acc", "Light Brightness Read: %d", light_brightness); return light_brightness; },
+    "int",
+    {"pr", "pw", "ev"}
+  );
+  acc_light_hue_char = Characteristic(
+    APPL_CHAR_UUID_HUE,
+    [](nlohmann::json v){ ESP_LOGD("acc", "Light Hue Write: %f", v.get<float>()); light_hue = v.get<float>(); },
+    []() -> nlohmann::json { ESP_LOGD("acc", "Light Hue Read: %f", light_hue); return light_hue; },
+    "float",
+    {"pr", "pw", "ev"}
+  );
+  acc_light_sat_char = Characteristic(
+    APPL_CHAR_UUID_SATURATION,
+    [](nlohmann::json v){ ESP_LOGD("acc", "Light Sat Write: %f", v.get<float>()); light_sat = v.get<float>(); },
+    []() -> nlohmann::json { ESP_LOGD("acc", "Light Sat Read: %f", light_sat); return light_sat; },
+    "float",
+    {"pr", "pw", "ev"}
+  );
+  acc_light = Service(
+    APPL_SRVC_UUID_LIGHTBULB,
+    false,
+    false
+  );
+  acc_light.register_characteristic(acc_light_on_char);
+  acc_light.register_characteristic(acc_light_brightness_char);
+  acc_light.register_characteristic(acc_light_hue_char);
+  acc_light.register_characteristic(acc_light_sat_char);
+  acc.register_service(acc_light);
+
   app.register_accessory(acc);
+  app.start();
 }
 
-// FreeRTOS task to start Mongoose.
-void mg_task(void* data) {
-  ESP_LOGD(l_tag, "Task starting");
-  struct mg_mgr mgr;
-  mg_mgr_init(&mgr, NULL);
-
-  struct mg_connection *c = mg_bind(&mgr, ":80", mongoose_event_handler);
-
-  ESP_LOGD(l_tag, "Successfully bound");
-  if (c == NULL) {
-    ESP_LOGE(l_tag, "No connection from the mg_bind()");
-    vTaskDelete(NULL);
-    return;
-  }
-  mg_set_protocol_http_websocket(c);
-
-  while (1) {
-    mg_mgr_poll(&mgr, 1000);
-  }
-}
 
 // ESP32 WiFi handler.
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
@@ -82,12 +105,11 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
   } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
     wifi_event_sta_disconnected_t* data = (wifi_event_sta_disconnected_t*)event_data;
     esp_wifi_connect();
-    ESP_LOGI(l_tag, "Disconnected(%d): retyring connection to WiFi network...", data->reason);
+    ESP_LOGI("main", "Disconnected(%d): retyring connection to WiFi network...", data->reason);
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-    ESP_LOGI(l_tag, "Connected: IP: " IPSTR, IP2STR(&event->ip_info.ip));
+    ESP_LOGI("main", "Connected: IP: " IPSTR, IP2STR(&event->ip_info.ip));
     init_app();
-    xTaskCreatePinnedToCore(&mg_task, "mg_task", 20000, NULL, 5, NULL,0);
   }
 }
 
@@ -112,7 +134,7 @@ void init_wifi() {
   ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
   ESP_ERROR_CHECK(esp_wifi_start());
 
-  ESP_LOGI(l_tag, "WiFi Init finished.");
+  ESP_LOGI("main", "WiFi Init finished.");
 }
 
 

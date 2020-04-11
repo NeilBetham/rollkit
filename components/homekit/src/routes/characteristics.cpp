@@ -20,6 +20,8 @@ void Characteristics::handle_request(Request& request, AccessoryDB& acc_db, Even
 void Characteristics::handle_get(Request& request, AccessoryDB& acc_db) {
   auto query_info = parse_query_string(request.get_query_string());
   auto id_list = parse_id_list(query_info["id"]);
+  ESP_LOGD("rt-chars", "Query String: %s", request.get_query_string().c_str());
+  ESP_LOGD("rt-chars", "ID String: %s", query_info["id"].c_str());
   nlohmann::json resp;
 
   for(auto& id : id_list) {
@@ -27,8 +29,10 @@ void Characteristics::handle_get(Request& request, AccessoryDB& acc_db) {
     uint64_t char_id;
     tie(acc_id, char_id) = id;
 
+    ESP_LOGD("rt-chars", "Looking for char: %llu", char_id);
     auto char_opt = acc_db.find_char(acc_id, char_id);
     if(char_opt) {
+      ESP_LOGD("rt-chars", "Found char: %llu", char_id);
       resp["characteristics"].push_back({
         {"aid", acc_id},
         {"iid", char_id},
@@ -46,6 +50,7 @@ void Characteristics::handle_get(Request& request, AccessoryDB& acc_db) {
 
 void Characteristics::handle_put(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr) {
   nlohmann::json char_write_req = nlohmann::json::parse(request.get_body());
+  ESP_LOGD("rt-chars", "PUT request body: %s", request.get_body().c_str());
 
   auto char_write_reqs = char_write_req["characteristics"];
   if(char_write_reqs.is_null()) { return; }
@@ -56,7 +61,7 @@ void Characteristics::handle_put(Request& request, AccessoryDB& acc_db, EventMan
     if(req.contains("ev")) {
       // Handle event sub request
       if(req["ev"] == true) {
-        ESP_LOGD("rt-chars", "Event Request: %s", request.get_body().c_str());
+        ESP_LOGD("rt-chars", "Event Request: %s", req.dump().c_str());
         ESP_LOGD("rt-chars", "Controller Registering For Events");
         ev_mgr.register_for_events(&request.get_session(), char_id);
         request.get_session().register_event_listener(&ev_mgr);
