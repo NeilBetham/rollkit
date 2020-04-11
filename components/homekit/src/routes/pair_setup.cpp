@@ -39,8 +39,6 @@ void PairSetup::handle_request(Request& request, IApp& app) {
 void PairSetup::handle_m1(Request& request, TLVs& tlvs, IApp& app) {
   ESP_LOGI("pair-setup", "Handling M1");
   auto hap_method = tlvs.find(HAP_TLV_TYPE_METHOD);
-  _srp_user = SRP::User::fromPassword(_srp_math, "Pair-Setup", app.get_setup_code());
-  _srp_verifier = SRP::Verifier(_srp_math, _srp_user);
   ESP_LOGD("pair-setup", "Pairing setup code: `%s`", app.get_setup_code().c_str());
 
   // Check we are receiving the correct setup params
@@ -71,6 +69,10 @@ void PairSetup::handle_m1(Request& request, TLVs& tlvs, IApp& app) {
     reset();
     return;
   }
+
+  // Setup SRP info
+  _srp_user = SRP::User::fromPassword(_srp_math, "Pair-Setup", app.get_setup_code());
+  _srp_verifier = SRP::Verifier(_srp_math, _srp_user);
 
   // Generate challenge
   auto challenge = _srp_verifier.get_challenge();
