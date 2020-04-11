@@ -10,7 +10,7 @@ namespace routes {
 
 class Pairings : public IRoute {
 public:
-  void handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr);
+  void handle_request(Request& request, IApp& app);
 
 private:
   void handle_add_pairing(Request& request, TLVs& tlvs);

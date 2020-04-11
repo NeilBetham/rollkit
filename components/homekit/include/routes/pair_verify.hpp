@@ -28,7 +28,7 @@ struct VerifyState {
 
 class PairVerify : public IRoute {
 public:
-  void handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr);
+  void handle_request(Request& request, IApp& app);
 
 private:
   void handle_m1(Request& request, TLVs& tlvs, VerifyState& state);

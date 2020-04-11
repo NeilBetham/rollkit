@@ -11,18 +11,18 @@
 #include "i_route.hpp"
 #include "request.hpp"
 
+class App;
 
 class Router : public ISessionDelegate {
 public:
-  Router(AccessoryDB& acc_db, EventManager& ev_mgr) : _acc_db(acc_db), _ev_mgr(ev_mgr) {};
+  Router(IApp& app) : _app(app) {};
   ~Router() {};
 
   virtual void register_route(std::string uri, IRoute* route);
   virtual void request_recv(Request& request);
 
 private:
-  AccessoryDB& _acc_db;
-  EventManager& _ev_mgr;
+  IApp& _app;
   std::vector<std::tuple<std::string, IRoute*> > routes;
 };
 

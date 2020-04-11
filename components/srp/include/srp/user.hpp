@@ -15,6 +15,15 @@ public:
   User(Math& math, const std::string _username, const BigNum& _verifier, const BigNum& _salt) :
     _math(math), username(_username), verifier(_verifier), salt(_salt) {};
 
+  User& operator=(const User& other) {
+    username = other.username;
+    verifier = other.verifier;
+    salt = other.salt;
+
+    return *this;
+  };
+
+
   static User fromPassword(Math& math, const std::string& username, const std::string& password);
 
   std::string get_username() { return username; };

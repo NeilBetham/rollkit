@@ -3,17 +3,15 @@
 
 #include "i_route.hpp"
 
-#include "i_route.hpp"
-
 namespace routes {
 
 class Characteristics : public IRoute {
 public:
-  void handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr);
+  void handle_request(Request& request, IApp& app);
 
 private:
-  void handle_get(Request& request, AccessoryDB& acc_db);
-  void handle_put(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr);
+  void handle_get(Request& request, IApp& app);
+  void handle_put(Request& request, IApp& app);
 };
 
 } // namespace routes

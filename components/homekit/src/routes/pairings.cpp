@@ -9,7 +9,7 @@ using namespace std;
 namespace routes {
 
 
-void Pairings::handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr) {
+void Pairings::handle_request(Request& request, IApp& app) {
   auto req_tlvs = TLV::decode(request.get_body());
   auto method = req_tlvs.find(HAP_TLV_TYPE_METHOD);
   if(!method) { request.get_session().close(); return; }

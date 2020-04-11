@@ -16,7 +16,7 @@ using namespace std;
 namespace routes {
 
 
-void PairSetup::handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr) {
+void PairSetup::handle_request(Request& request, IApp& app) {
   auto req_tlvs = TLV::decode(request.get_body());
   auto state_tlv = req_tlvs.find(HAP_TLV_TYPE_STATE);
   if(state_tlv) {
@@ -28,7 +28,7 @@ void PairSetup::handle_request(Request& request, AccessoryDB& acc_db, EventManag
   ESP_LOGD("pair-setup", "Got %u TLVs from client", req_tlvs.get().size());
 
   switch(_setup_stage) {
-    case PairState::M0 : handle_m1(request, req_tlvs); break;
+    case PairState::M0 : handle_m1(request, req_tlvs, app); break;
     case PairState::M2 : handle_m3(request, req_tlvs); break;
     case PairState::M4 : handle_m5(request, req_tlvs); break;
     default : break;
@@ -36,15 +36,39 @@ void PairSetup::handle_request(Request& request, AccessoryDB& acc_db, EventManag
 }
 
 
-void PairSetup::handle_m1(Request& request, TLVs& tlvs) {
+void PairSetup::handle_m1(Request& request, TLVs& tlvs, IApp& app) {
   ESP_LOGI("pair-setup", "Handling M1");
   auto hap_method = tlvs.find(HAP_TLV_TYPE_METHOD);
+  _srp_user = SRP::User::fromPassword(_srp_math, "Pair-Setup", app.get_setup_code());
+  _srp_verifier = SRP::Verifier(_srp_math, _srp_user);
+  ESP_LOGD("pair-setup", "Pairing setup code: `%s`", app.get_setup_code().c_str());
 
   // Check we are receiving the correct setup params
   if(hap_method && (hap_method->get_value()[0] != HAP_TLV_METHOD_PAIR_SETUP)) {
     ESP_LOGE("pair-setup", "Client requesting unsupported pair setup: %d", hap_method->get_value()[0]);
     reset();
     request.get_session().close();
+    return;
+  }
+
+  // Check if we are pairing with another controller
+  if(_pair_in_progress) {
+    string resp;
+    resp += TLV(HAP_TLV_TYPE_STATE, {0x02}).serialize();
+    resp += TLV(HAP_TLV_TYPE_ERROR, {HAP_TLV_ERROR_BUSY}).serialize();
+    request.get_session().send(200, resp, "application/pairing+tlv8");
+    return;
+  }
+  _pair_in_progress = true;
+
+  // Check if a controller is paired already
+  PairingManager pm;
+  if(pm.get_pairing_count() > 0) {
+    string resp;
+    resp += TLV(HAP_TLV_TYPE_STATE, {0x02}).serialize();
+    resp += TLV(HAP_TLV_TYPE_ERROR, {HAP_TLV_ERROR_UNAVAILABLE}).serialize();
+    request.get_session().send(200, resp, "application/pairing+tlv8");
+    reset();
     return;
   }
 

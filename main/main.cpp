@@ -37,7 +37,7 @@ float light_sat = 0.0;
 
 
 void init_app() {
-  app.init(ACC_NAME, ACC_MODEL, ACC_MANUFACTURER, ACC_FIRMWARE_REVISION);
+  app.init(ACC_NAME, ACC_MODEL, ACC_MANUFACTURER, ACC_FIRMWARE_REVISION, ACC_SETUP_CODE);
 
   acc_switch_char = Characteristic(
     APPL_CHAR_UUID_ON,

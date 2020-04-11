@@ -10,6 +10,10 @@
 #include <freertos/task.h>
 #include <freertos/event_groups.h>
 
+#include "accessory_db.hpp"
+#include "event_manager.hpp"
+#include "i_app.hpp"
+#include "mdns.hpp"
 #include "mongoose.h"
 #include "router.hpp"
 #include "routes/pair_setup.hpp"
@@ -18,14 +22,11 @@
 #include "routes/characteristics.hpp"
 #include "routes/pairings.hpp"
 #include "session_manager.hpp"
-#include "accessory_db.hpp"
-#include "mdns.hpp"
-#include "event_manager.hpp"
 
 
-class App {
+class App : public IApp {
 public:
-  App() : _event_mgr(_accessory_db), _router(_accessory_db, _event_mgr), _session_manager(&_router) {
+  App() : _event_mgr(_accessory_db), _router(*this), _session_manager(&_router) {
     _router.register_route("/pair-setup", &_ps_route);
     _router.register_route("/pair-verify", &_pv_route);
     _router.register_route("/accessories", &_accs_route);
@@ -33,7 +34,7 @@ public:
     _router.register_route("/pairings", &_pairings_route);
   };
 
-  void init(std::string name, std::string model, std::string manu, std::string firmware_rev);
+  void init(std::string name, std::string model, std::string manu, std::string firmware_rev, std::string setup_code);
   void start();
   void stop();
   void register_accessory(const Accessory& acc) {
@@ -45,10 +46,15 @@ public:
   void handle_mg_event(struct mg_connection *nc, int event, void *event_data) {
     _session_manager.handle_mg_event(nc, event, event_data);
   }
+  AccessoryDB& get_acc_db() { return _accessory_db; };
+  EventManager& get_ev_mgr() { return _event_mgr; };
+  std::string get_setup_code() { return _setup_code; };
 
   void run();
 
 private:
+  std::string _setup_code;
+
   AccessoryDB _accessory_db;
   EventManager _event_mgr;
   Service _accessory_info;

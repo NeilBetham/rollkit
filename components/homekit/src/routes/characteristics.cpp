@@ -9,15 +9,15 @@ using namespace std;
 
 namespace routes {
 
-void Characteristics::handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr) {
+void Characteristics::handle_request(Request& request, IApp& app) {
   if(request.get_method() == "GET") {
-    handle_get(request, acc_db);
+    handle_get(request, app);
   } else if(request.get_method() == "PUT") {
-    handle_put(request, acc_db, ev_mgr);
+    handle_put(request, app);
   }
 };
 
-void Characteristics::handle_get(Request& request, AccessoryDB& acc_db) {
+void Characteristics::handle_get(Request& request, IApp& app) {
   auto query_info = parse_query_string(request.get_query_string());
   auto id_list = parse_id_list(query_info["id"]);
   ESP_LOGD("rt-chars", "Query String: %s", request.get_query_string().c_str());
@@ -30,7 +30,7 @@ void Characteristics::handle_get(Request& request, AccessoryDB& acc_db) {
     tie(acc_id, char_id) = id;
 
     ESP_LOGD("rt-chars", "Looking for char: %llu", char_id);
-    auto char_opt = acc_db.find_char(acc_id, char_id);
+    auto char_opt = app.get_acc_db().find_char(acc_id, char_id);
     if(char_opt) {
       ESP_LOGD("rt-chars", "Found char: %llu", char_id);
       resp["characteristics"].push_back({
@@ -48,7 +48,7 @@ void Characteristics::handle_get(Request& request, AccessoryDB& acc_db) {
   request.get_session().send(200, body, "application/hap+json");
 };
 
-void Characteristics::handle_put(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr) {
+void Characteristics::handle_put(Request& request, IApp& app) {
   nlohmann::json char_write_req = nlohmann::json::parse(request.get_body());
   ESP_LOGD("rt-chars", "PUT request body: %s", request.get_body().c_str());
 
@@ -63,21 +63,21 @@ void Characteristics::handle_put(Request& request, AccessoryDB& acc_db, EventMan
       if(req["ev"] == true) {
         ESP_LOGD("rt-chars", "Event Request: %s", req.dump().c_str());
         ESP_LOGD("rt-chars", "Controller Registering For Events");
-        ev_mgr.register_for_events(&request.get_session(), char_id);
-        request.get_session().register_event_listener(&ev_mgr);
+        app.get_ev_mgr().register_for_events(&request.get_session(), char_id);
+        request.get_session().register_event_listener(&app.get_ev_mgr());
       } else {
         ESP_LOGD("rt-chars", "Controller Unregistering For Events");
-        ev_mgr.unregister_for_events(&request.get_session(), char_id);
+        app.get_ev_mgr().unregister_for_events(&request.get_session(), char_id);
       }
     } else {
       // Handle char put request
       auto value = req["value"];
 
-      auto char_opt = acc_db.find_char(acc_id, char_id);
+      auto char_opt = app.get_acc_db().find_char(acc_id, char_id);
       if(!char_opt) { continue; }
 
       char_opt->handle_update(value);
-      ev_mgr.characteristic_updated(acc_id, char_id);
+      app.get_ev_mgr().characteristic_updated(acc_id, char_id);
     }
   }
 

@@ -6,10 +6,10 @@
 
 namespace routes {
 
-void Accessories::handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr) {
+void Accessories::handle_request(Request& request, IApp& app) {
   nlohmann::json message;
   std::list<nlohmann::json> accessories_json;
-  for(const auto& accessory : acc_db.get_accessories()) {
+  for(const auto& accessory : app.get_acc_db().get_accessories()) {
     accessories_json.push_back(accessory.serialize());
   }
   message["accessories"] = accessories_json;

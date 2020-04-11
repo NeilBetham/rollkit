@@ -22,23 +22,21 @@ enum class PairState {
 class PairSetup : public IRoute {
 public:
   PairSetup() :
-    // TODO: Reset these classes when auth fails
     _srp_math(_srp_hash_fn, {HAP_SRP_MODULUS}, {HAP_SRP_GENERATOR}),
-    _srp_user(SRP::User::fromPassword(_srp_math, "Pair-Setup", "364-98-234")),
+    _srp_user(SRP::User::fromPassword(_srp_math, "", "")),
     _srp_verifier(_srp_math, _srp_user)
     {};
 
-  void handle_request(Request& request, AccessoryDB& acc_db, EventManager& ev_mgr);
+  void handle_request(Request& request, IApp& app);
 
 private:
-  void handle_m1(Request& request, TLVs& tlvs);
+  void handle_m1(Request& request, TLVs& tlvs, IApp& app);
   void handle_m3(Request& request, TLVs& tlvs);
   void handle_m5(Request& request, TLVs& tlvs);
 
   void reset() { _pair_in_progress = false; _setup_stage = PairState::M0; };
 
-  // If this prop is not null then pairing is in progress
-  bool _pair_in_progress;
+  bool _pair_in_progress = false;
   PairState _setup_stage;
 
   SRP::SHA512 _srp_hash_fn;

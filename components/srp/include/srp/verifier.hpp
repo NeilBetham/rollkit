@@ -17,10 +17,23 @@ class Verifier {
 public:
   Verifier(Math& math, const User& user) : _math(math), _user(user) {};
 
+  Verifier& operator=(const Verifier& rhs) {
+    _user = rhs._user;
+    k = rhs.k;
+    A = rhs.A;
+    B = rhs.B;
+    b = rhs.b;
+    S = rhs.S;
+    K = rhs.K;
+    M = rhs.M;
+    H_AMK = rhs.H_AMK;
+    return *this;
+  };
+
   Challenge get_challenge();
   bool verify(const BigNum& A, const BigNum& M);
   BigNum get_client_proof() { return H_AMK; };
-  BigNum get_shared_secret() { return K; }; 
+  BigNum get_shared_secret() { return K; };
 
 private:
   Math& _math;
