@@ -9,80 +9,98 @@
 
 #include "sdkconfig.h"
 
-#include "app.hpp"
+#include "rollkit.hpp"
 #include "config.hpp"
 
 using namespace std;
 
-App app;
-Accessory acc;
-Service acc_switch;
-Characteristic acc_switch_char;
+rollkit::App app;
+rollkit::Accessory acc;
+rollkit::Service acc_switch;
+rollkit::Characteristic acc_switch_on_char;
+rollkit::Characteristic acc_switch_name_char;
 
-Service acc_color_fade;
-Characteristic acc_color_fade_on_char;
-Characteristic acc_color_fade_name_char;
+rollkit::Service acc_color_fade;
+rollkit::Characteristic acc_color_fade_on_char;
+rollkit::Characteristic acc_color_fade_name_char;
 
-Service acc_light;
-Characteristic acc_light_on_char;
-Characteristic acc_light_brightness_char;
-Characteristic acc_light_hue_char;
-Characteristic acc_light_sat_char;
+rollkit::Service acc_light;
+rollkit::Characteristic acc_light_on_char;
+rollkit::Characteristic acc_light_brightness_char;
+rollkit::Characteristic acc_light_hue_char;
+rollkit::Characteristic acc_light_sat_char;
+rollkit::Characteristic acc_light_name_char;
 
 bool switch_on = false;
 bool light_on = false;
 int light_brightness = 0.0;
 float light_hue = 0.0;
 float light_sat = 0.0;
+bool color_fade_on = false;
 
 
 void init_app() {
   app.init(ACC_NAME, ACC_MODEL, ACC_MANUFACTURER, ACC_FIRMWARE_REVISION, ACC_SETUP_CODE);
 
-  acc_switch_char = Characteristic(
+  acc_switch_on_char = rollkit::Characteristic(
     APPL_CHAR_UUID_ON,
     [](nlohmann::json v){ ESP_LOGD("acc", "Switch On Write: %d", v.get<int>()); switch_on = (bool)v.get<int>(); },
     []() -> nlohmann::json { ESP_LOGD("acc", "Switch On Read: %d", switch_on); return switch_on; },
     "bool",
     {"pr", "pw", "ev"}
   );
-  acc_switch = Service(
+  acc_switch_name_char = rollkit::Characteristic(
+    APPL_CHAR_UUID_NAME,
+    [](nlohmann::json v){},
+    []() -> nlohmann::json { ESP_LOGD("acc", "Switch Name Read"); return "Pump"; },
+    "string",
+    {"pr"}
+  );
+  acc_switch = rollkit::Service(
     APPL_SRVC_UUID_SWITCH,
     false,
     true
   );
-  acc_switch.register_characteristic(acc_switch_char);
+  acc_switch.register_characteristic(acc_switch_on_char);
+  acc_switch.register_characteristic(acc_switch_name_char);
   acc.register_service(acc_switch);
 
-  acc_light_on_char = Characteristic(
+  acc_light_on_char = rollkit::Characteristic(
     APPL_CHAR_UUID_ON,
     [](nlohmann::json v){ ESP_LOGD("acc", "Light On Write: %d", v.get<int>()); light_on = (bool)v.get<int>(); },
     []() -> nlohmann::json { ESP_LOGD("acc", "Light On Read value: %d", light_on); return light_on; },
     "bool",
     {"pr", "pw", "ev"}
   );
-  acc_light_brightness_char = Characteristic(
+  acc_light_brightness_char = rollkit::Characteristic(
     APPL_CHAR_UUID_BRIGHTNESS,
     [](nlohmann::json v){ ESP_LOGD("acc", "Light Brightness Write: %d", v.get<int>()); light_brightness = v.get<int>(); },
     []() -> nlohmann::json { ESP_LOGD("acc", "Light Brightness Read: %d", light_brightness); return light_brightness; },
     "int",
     {"pr", "pw", "ev"}
   );
-  acc_light_hue_char = Characteristic(
+  acc_light_hue_char = rollkit::Characteristic(
     APPL_CHAR_UUID_HUE,
     [](nlohmann::json v){ ESP_LOGD("acc", "Light Hue Write: %f", v.get<float>()); light_hue = v.get<float>(); },
     []() -> nlohmann::json { ESP_LOGD("acc", "Light Hue Read: %f", light_hue); return light_hue; },
     "float",
     {"pr", "pw", "ev"}
   );
-  acc_light_sat_char = Characteristic(
+  acc_light_sat_char = rollkit::Characteristic(
     APPL_CHAR_UUID_SATURATION,
     [](nlohmann::json v){ ESP_LOGD("acc", "Light Sat Write: %f", v.get<float>()); light_sat = v.get<float>(); },
     []() -> nlohmann::json { ESP_LOGD("acc", "Light Sat Read: %f", light_sat); return light_sat; },
     "float",
     {"pr", "pw", "ev"}
   );
-  acc_light = Service(
+  acc_light_name_char = rollkit::Characteristic(
+    APPL_CHAR_UUID_NAME,
+    [](nlohmann::json v){},
+    []() -> nlohmann::json { ESP_LOGD("acc", "Light Name Read"); return "Lights"; },
+    "string",
+    {"pr"}
+  );
+  acc_light = rollkit::Service(
     APPL_SRVC_UUID_LIGHTBULB,
     false,
     false
@@ -91,7 +109,32 @@ void init_app() {
   acc_light.register_characteristic(acc_light_brightness_char);
   acc_light.register_characteristic(acc_light_hue_char);
   acc_light.register_characteristic(acc_light_sat_char);
+  acc_light.register_characteristic(acc_light_name_char);
   acc.register_service(acc_light);
+
+  acc_color_fade_on_char = rollkit::Characteristic(
+    APPL_CHAR_UUID_ON,
+    [](nlohmann::json v){ ESP_LOGD("acc", "Color Fade On Write: %d", v.get<int>()); color_fade_on = (bool)v.get<int>(); },
+    []() -> nlohmann::json { ESP_LOGD("acc", "Color Fade On Read: %d", color_fade_on); return color_fade_on; },
+    "bool",
+    {"pr", "pw", "ev"}
+  );
+  acc_color_fade_name_char = rollkit::Characteristic(
+    APPL_CHAR_UUID_NAME,
+    [](nlohmann::json v){ },
+    []() -> nlohmann::json { ESP_LOGD("acc", "Color Fade Name Read"); return "Fade"; },
+    "string",
+    {"pr"}
+  );
+  acc_color_fade = rollkit::Service(
+    APPL_SRVC_UUID_SWITCH,
+    false,
+    true
+  );
+  acc_color_fade.register_characteristic(acc_color_fade_on_char);
+  acc_color_fade.register_characteristic(acc_color_fade_name_char);
+  acc.register_service(acc_color_fade);
+
 
   app.register_accessory(acc);
   app.start();

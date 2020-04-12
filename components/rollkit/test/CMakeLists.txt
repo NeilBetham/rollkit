@@ -4,8 +4,6 @@ idf_component_register(
   INCLUDE_DIRS
     "."
   REQUIRES
-    srp
+    unity
     rollkit
-    nvs_flash
-    mdns
 )
