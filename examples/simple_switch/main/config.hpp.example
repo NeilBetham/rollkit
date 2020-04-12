@@ -10,6 +10,6 @@
 #define ACC_MODEL ""
 #define ACC_MANUFACTURER ""
 #define ACC_FIRMWARE_REVISION ""
-
+#define ACC_SETUP_CODE "000-00-000"
 
 #endif // CONFIG_HPP
