@@ -43,7 +43,7 @@ void PairSetup::handle_m1(Request& request, TLVs& tlvs, interfaces::IApp& app) {
   ESP_LOGD("pair-setup", "Pairing setup code: `%s`", app.get_setup_code().c_str());
 
   // Check we are receiving the correct setup params
-  if(hap_method && (hap_method->get_value()[0] != HAP_TLV_METHOD_PAIR_SETUP)) {
+  if(hap_method && (hap_method->get_value()[0] != HAP_TLV_METHOD_PAIR_SETUP) && (hap_method->get_value()[0] != HAP_TLV_METHOD_PAIR_SETUP_WITH_AUTH)) {
     ESP_LOGE("pair-setup", "Client requesting unsupported pair setup: %d", hap_method->get_value()[0]);
     reset();
     request.get_session().close();
@@ -240,9 +240,12 @@ void PairSetup::handle_m5(Request& request, TLVs& tlvs, interfaces::IApp& app) {
 
   // Set PairState
   _setup_stage = PairState::M6;
+  _pair_in_progress = false;
+  _pairing_session = NULL;
 }
 
 void PairSetup::session_closed(void* session_id) {
+  if(_pair_in_progress == false) { return; }
   ESP_LOGI("pair-setup", "Session %p closed; canceling in progress pairing", session_id);
   if(_pairing_session == session_id) {
     _pair_in_progress = false;
