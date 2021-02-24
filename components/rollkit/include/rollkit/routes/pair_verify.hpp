@@ -33,7 +33,7 @@ public:
   void handle_request(Request& request, interfaces::IApp& app);
 
 private:
-  void handle_m1(Request& request, TLVs& tlvs, VerifyState& state);
+  void handle_m1(Request& request, TLVs& tlvs, VerifyState& state, interfaces::IApp& app);
   void handle_m3(Request& request, TLVs& tlvs, VerifyState& state);
 
   std::unordered_map<void*, VerifyState> _verify_states;
