@@ -3,6 +3,7 @@
 
 #include "srp.hpp"
 #include "rollkit/interfaces/i_route.hpp"
+#include "rollkit/interfaces/i_session_event_delegate.hpp"
 #include "rollkit/tlv.hpp"
 #include "rollkit/hap_defs.hpp"
 
@@ -20,7 +21,7 @@ enum class PairState {
   M6  // Accessory exchanges public keys for encryption
 };
 
-class PairSetup : public interfaces::IRoute {
+class PairSetup : public interfaces::IRoute, public interfaces::ISessionEventDelegate {
 public:
   PairSetup() :
     _srp_math(_srp_hash_fn, {HAP_SRP_MODULUS}, {HAP_SRP_GENERATOR}),
@@ -29,15 +30,17 @@ public:
     {};
 
   void handle_request(Request& request, interfaces::IApp& app);
+  void session_closed(void* session_id);
 
 private:
   void handle_m1(Request& request, TLVs& tlvs, interfaces::IApp& app);
   void handle_m3(Request& request, TLVs& tlvs);
-  void handle_m5(Request& request, TLVs& tlvs);
+  void handle_m5(Request& request, TLVs& tlvs, interfaces::IApp& app);
 
   void reset() { _pair_in_progress = false; _setup_stage = PairState::M0; };
 
   bool _pair_in_progress = false;
+  void* _pairing_session = NULL;
   PairState _setup_stage;
 
   SRP::SHA512 _srp_hash_fn;

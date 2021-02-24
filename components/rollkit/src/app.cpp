@@ -29,8 +29,10 @@ void main_task(void* data) {
 
 
 void App::init(std::string name, std::string model, std::string manu, std::string firmware_rev, std::string setup_code, std::string mac) {
-  _mdns_mgr = MDNSManager(name, model, mac);
   _setup_code = setup_code;
+  _device_id = mac;
+  _mdns_mgr = MDNSManager(name, model, _device_id);
+
 
   // Setup accessory info service
   Service accessory_info(

@@ -18,6 +18,7 @@ public:
   virtual AccessoryDB& get_acc_db() = 0;
   virtual EventManager& get_ev_mgr() = 0;
   virtual std::string get_setup_code() = 0;
+  virtual std::string get_device_id() = 0;
 };
 
 

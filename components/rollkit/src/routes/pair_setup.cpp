@@ -31,7 +31,7 @@ void PairSetup::handle_request(Request& request, interfaces::IApp& app) {
   switch(_setup_stage) {
     case PairState::M0 : handle_m1(request, req_tlvs, app); break;
     case PairState::M2 : handle_m3(request, req_tlvs); break;
-    case PairState::M4 : handle_m5(request, req_tlvs); break;
+    case PairState::M4 : handle_m5(request, req_tlvs, app); break;
     default : break;
   }
 }
@@ -59,6 +59,8 @@ void PairSetup::handle_m1(Request& request, TLVs& tlvs, interfaces::IApp& app) {
     return;
   }
   _pair_in_progress = true;
+  _pairing_session = request.get_session().get_identifier();
+  request.get_session().register_event_listener(this);
 
   // Check if a controller is paired already
   PairingManager pm;
@@ -128,7 +130,7 @@ void PairSetup::handle_m3(Request& request, TLVs& tlvs) {
   _setup_stage = PairState::M4;
 }
 
-void PairSetup::handle_m5(Request& request, TLVs& tlvs) {
+void PairSetup::handle_m5(Request& request, TLVs& tlvs, interfaces::IApp& app) {
   ESP_LOGI("pair-setup", "Handling M5");
 
   // Get the encrypted TLV
@@ -217,7 +219,7 @@ void PairSetup::handle_m5(Request& request, TLVs& tlvs) {
   );
 
   // Build AccessoryInfo
-  string accessory_info = accessory_x + get_mac_address() + get_public_key();
+  string accessory_info = accessory_x + app.get_device_id() + get_public_key();
 
   // Sign the accessory_info
   auto signature = sign_ed25519(accessory_info, get_private_key());
@@ -238,6 +240,14 @@ void PairSetup::handle_m5(Request& request, TLVs& tlvs) {
 
   // Set PairState
   _setup_stage = PairState::M6;
+}
+
+void PairSetup::session_closed(void* session_id) {
+  ESP_LOGI("pair-setup", "Session %p closed; canceling in progress pairing", session_id);
+  if(_pairing_session == session_id) {
+    _pair_in_progress = false;
+    _pairing_session = NULL;
+  }
 }
 
 

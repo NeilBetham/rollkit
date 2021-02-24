@@ -52,11 +52,13 @@ public:
   AccessoryDB& get_acc_db() { return _accessory_db; };
   EventManager& get_ev_mgr() { return _event_mgr; };
   std::string get_setup_code() { return _setup_code; };
+  std::string get_device_id() { return _device_id; };
 
   void run();
 
 private:
   std::string _setup_code;
+  std::string _device_id;
 
   AccessoryDB _accessory_db;
   EventManager _event_mgr;
