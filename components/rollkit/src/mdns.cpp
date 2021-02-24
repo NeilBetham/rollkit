@@ -23,8 +23,8 @@ static const char* state_number_value = "1";
 static const char* cat_id_value = "5";
 
 
-MDNSManager::MDNSManager(std::string acc_name, std::string acc_model) : _acc_name(acc_name), _acc_model(acc_model) {
-  _device_id = get_mac_address();
+MDNSManager::MDNSManager(std::string acc_name, std::string acc_model, std::string mac) :
+    _acc_name(acc_name), _acc_model(acc_model), _device_id(mac) {
 
   // Init mdns server
   esp_err_t err = mdns_init();

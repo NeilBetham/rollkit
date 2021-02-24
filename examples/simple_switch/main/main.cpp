@@ -22,9 +22,16 @@ rollkit::Characteristic acc_switch_name_char;
 
 bool switch_on = false;
 
+std::string get_mac_address() {
+  string ret(17, 0);
+  uint8_t mac[6];
+  esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
+  sprintf(&ret[0], "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  return ret;
+}
 
 void init_app() {
-  app.init(ACC_NAME, ACC_MODEL, ACC_MANUFACTURER, ACC_FIRMWARE_REVISION, ACC_SETUP_CODE);
+  app.init(ACC_NAME, ACC_MODEL, ACC_MANUFACTURER, ACC_FIRMWARE_REVISION, ACC_SETUP_CODE, get_mac_address());
 
   acc_switch_on_char = rollkit::Characteristic(
     APPL_CHAR_UUID_ON,

@@ -37,7 +37,7 @@ public:
     _router.register_route("/pairings", &_pairings_route);
   };
 
-  void init(std::string name, std::string model, std::string manu, std::string firmware_rev, std::string setup_code);
+  void init(std::string name, std::string model, std::string manu, std::string firmware_rev, std::string setup_code, std::string mac);
   void start();
   void stop();
   void register_accessory(const Accessory& acc) {

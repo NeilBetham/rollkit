@@ -28,8 +28,8 @@ void main_task(void* data) {
 } // namespace
 
 
-void App::init(std::string name, std::string model, std::string manu, std::string firmware_rev, std::string setup_code) {
-  _mdns_mgr = MDNSManager(name, model);
+void App::init(std::string name, std::string model, std::string manu, std::string firmware_rev, std::string setup_code, std::string mac) {
+  _mdns_mgr = MDNSManager(name, model, mac);
   _setup_code = setup_code;
 
   // Setup accessory info service

@@ -10,7 +10,7 @@ namespace rollkit {
 class MDNSManager {
 public:
   MDNSManager() {};
-  MDNSManager(std::string acc_name, std::string acc_model);
+  MDNSManager(std::string acc_name, std::string acc_model, std::string mac);
 
   void publish_record();
 
