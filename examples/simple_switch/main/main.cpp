@@ -25,7 +25,7 @@ bool switch_on = false;
 std::string get_mac_address() {
   string ret(17, 0);
   uint8_t mac[6];
-  esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
+  esp_wifi_get_mac(WIFI_IF_STA, mac);
   sprintf(&ret[0], "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
   return ret;
 }
@@ -94,7 +94,7 @@ void init_wifi() {
   strcpy((char*)wifi_config.sta.ssid, WIFI_SSID);
   strcpy((char*)wifi_config.sta.password, WIFI_PASS);
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-  ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
+  ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
   ESP_ERROR_CHECK(esp_wifi_start());
 
   ESP_LOGI("main", "WiFi Init finished.");

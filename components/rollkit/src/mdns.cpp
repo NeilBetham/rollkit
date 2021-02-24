@@ -3,7 +3,6 @@
 #include <esp_log.h>
 #include <string.h>
 
-#include "rollkit/host_info.hpp"
 #include "rollkit/pairing_manager.hpp"
 
 namespace rollkit {

@@ -2,7 +2,6 @@
 
 #include <esp_log.h>
 
-#include "rollkit/host_info.hpp"
 #include "rollkit/hap_defs.hpp"
 
 namespace rollkit {
@@ -90,7 +89,7 @@ void App::init(std::string name, std::string model, std::string manu, std::strin
   accessory_info.register_characteristic({
     APPL_CHAR_UUID_SERIAL_NUMBER,
     [](std::string s){},
-    []{ return get_mac_address(); },
+    [&]{ return _device_id; },
     "string",
     {"pr"}
   });

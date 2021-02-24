@@ -7,7 +7,6 @@
 #include "rollkit/cryptor.hpp"
 #include "rollkit/hkdf.hpp"
 #include "rollkit/ed25519.hpp"
-#include "rollkit/host_info.hpp"
 #include "rollkit/key_storage.hpp"
 #include "rollkit/pairing_manager.hpp"
 
