@@ -226,7 +226,7 @@ void PairSetup::handle_m5(Request& request, TLVs& tlvs, interfaces::IApp& app) {
 
   // Build TLV to send back to client
   string resp;
-  resp += TLV(HAP_TLV_TYPE_IDENTIFIER, get_mac_address()).serialize();
+  resp += TLV(HAP_TLV_TYPE_IDENTIFIER, app.get_device_id()).serialize();
   resp += TLV(HAP_TLV_TYPE_PUB_KEY, get_public_key()).serialize();
   resp += TLV(HAP_TLV_TYPE_SIGNATURE, signature).serialize();
 
