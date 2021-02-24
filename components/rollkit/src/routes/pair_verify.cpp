@@ -35,13 +35,13 @@ void PairVerify::handle_request(Request& request, interfaces::IApp& app) {
   ESP_LOGD("pair-verify", "Got %u TLVs from client", req_tlvs.get().size());
 
   switch(verify_state.stage) {
-    case VerifyStage::M0 : handle_m1(request, req_tlvs, verify_state); break;
+    case VerifyStage::M0 : handle_m1(request, req_tlvs, verify_state, app); break;
     case VerifyStage::M2 : handle_m3(request, req_tlvs, verify_state); break;
     default : break;
   }
 }
 
-void PairVerify::handle_m1(Request& request, TLVs& tlvs, VerifyState& state) {
+void PairVerify::handle_m1(Request& request, TLVs& tlvs, VerifyState& state, interfaces::IApp& app) {
   ESP_LOGI("pair-verify", "Handling M1");
   auto public_key = tlvs.find(HAP_TLV_TYPE_PUB_KEY);
   if(!public_key) {
@@ -58,14 +58,14 @@ void PairVerify::handle_m1(Request& request, TLVs& tlvs, VerifyState& state) {
   );
 
   // Build accessory_info
-  string accessory_info = state.accessory_public_key + get_mac_address() + state.device_public_key;
+  string accessory_info = state.accessory_public_key + app.get_device_id() + state.device_public_key;
 
   // Sign accessory_info
   string signature = sign_ed25519(accessory_info, get_private_key());
 
   // Build sub tlvs
   string sub_tlv;
-  sub_tlv += TLV(HAP_TLV_TYPE_IDENTIFIER, get_mac_address()).serialize();
+  sub_tlv += TLV(HAP_TLV_TYPE_IDENTIFIER, app.get_device_id()).serialize();
   sub_tlv += TLV(HAP_TLV_TYPE_SIGNATURE, signature).serialize();
 
   // Get symetric session key
