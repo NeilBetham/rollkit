@@ -20,6 +20,7 @@ void main_task(void* data) {
   App* app = (App*)data;
   while (1) {
     app->run();
+    vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
 
@@ -134,7 +135,7 @@ void App::stop() {
 
 
 void App::run() {
-  mg_mgr_poll(&_mg_mgr, 1000);
+  mg_mgr_poll(&_mg_mgr, 0);
 }
 
 
