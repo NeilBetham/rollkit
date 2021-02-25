@@ -3,6 +3,8 @@
 #include <esp_log.h>
 
 #include "rollkit/hap_defs.hpp"
+#include "rollkit/pairing_manager.hpp"
+#include "rollkit/key_storage.hpp"
 
 namespace rollkit {
 namespace {
@@ -133,6 +135,16 @@ void App::stop() {
   vTaskDelete(_main_task);
 }
 
+void App::reset() {
+  // Remove all pairings
+  PairingManager pm;
+  for(auto& pairing : pm.get_all_pairings()) {
+    pm.remove_pairing(pairing.get_pairing_id());
+  }
+
+  // Reset the long term keys
+  clear_keys();
+}
 
 void App::run() {
   mg_mgr_poll(&_mg_mgr, 0);

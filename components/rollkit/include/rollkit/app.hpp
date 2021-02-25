@@ -54,6 +54,8 @@ public:
   std::string get_setup_code() { return _setup_code; };
   std::string get_device_id() { return _device_id; };
 
+  void reset();
+
   void run();
 
 private:
